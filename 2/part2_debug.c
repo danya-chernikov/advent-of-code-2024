@@ -200,12 +200,15 @@ int	is_report_safe_dampener(int *report, int lnum)
 	int		rind;
 
 	rind = 0;
+	printf("\n");
 	while (rind < lnum - 1)
 	{
 		copy_arr(report, copy_report, lnum);
 		remove_arr_elem(copy_report, lnum, rind);
+		printf("\t"); print_arr(copy_report, lnum - 1);
 		if (is_report_safe(copy_report, lnum - 1))
 			return (1);
+		printf("\n");
 		rind++;
 	}
 	/* In case of deletion of the last element of the array,
@@ -213,8 +216,10 @@ int	is_report_safe_dampener(int *report, int lnum)
 	 * moving any elements */
 	copy_arr(report, copy_report, lnum);
 	remove_arr_elem(copy_report, lnum, lnum - 1);
+	printf("\t"); print_arr(copy_report, lnum - 1);
 	if (is_report_safe(copy_report, lnum - 1))
 		return (1);
+	printf("\n");
 
 	return (0);
 }
@@ -260,10 +265,15 @@ int	main(int argc, char *argv[])
 			nums_found = get_nums(line, nums, MAX_LINE_NUMS);
 			if (nums_found)
 			{
-				if (is_report_safe(nums, nums_found))
+				print_arr(nums, nums_found);
+				if (is_report_safe(nums, nums_found) ||
+					is_report_safe_dampener(nums, nums_found))
+				{
+					printf(" *\n");
 					safe_report_cnt++;
-				else if (is_report_safe_dampener(nums, nums_found))
-					safe_report_cnt++;
+				}
+				else
+					printf("\n");
 			}
 			continue;
 		}
