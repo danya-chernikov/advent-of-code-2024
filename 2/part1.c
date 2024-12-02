@@ -134,9 +134,18 @@ int	check_first_rule(int *report, int lnum)
  *     lnum - the number of levels in the report */
 int	check_second_rule(int *report, int lnum)
 {
-	report[0] = 0;
-	lnum++;
-	return (0);
+	int	i;
+	int	diff;
+
+	i = 0;
+	while (i < lnum - 1)
+	{
+		diff = abs(report[i] - report[i + 1]);
+		if (diff < 1 || diff > 3)
+			return (0);
+		i++;
+	}
+	return (1);
 }
 
 int	main(int argc, char *argv[])
@@ -150,6 +159,7 @@ int	main(int argc, char *argv[])
 
 	int		nums[MAX_LINE_NUMS];
 	int		nums_found;
+	int		safe_report_cnt;
 
 	if (argc != 2)
 	{
@@ -169,7 +179,7 @@ int	main(int argc, char *argv[])
 
 	i = 0;
 	ch = 0;
-	rewind(fptr);
+	safe_report_cnt = 0;
 	while ((ch = fgetc(fptr)) != EOF)
 	{
 		if (ch == '\n')
@@ -179,9 +189,9 @@ int	main(int argc, char *argv[])
 			nums_found = get_nums(line, nums, MAX_LINE_NUMS);
 			if (nums_found)
 			{
-				for (int i = 0; i < nums_found; i++)
-					printf("%d ", nums[i]);
-				printf(" %d\n", check_first_rule(nums, nums_found));
+				if (check_first_rule(nums, nums_found))
+					if (check_second_rule(nums, nums_found))
+						safe_report_cnt++;
 			}
 			continue;
 		}
@@ -191,6 +201,8 @@ int	main(int argc, char *argv[])
 		}
 		i++;
 	}
+
+	printf("safe reports number is: %d\n", safe_report_cnt);
 
 	fclose(fptr);
 	exit (EXIT_SUCCESS);
