@@ -132,6 +132,7 @@ int	get_num(char *line, int pos)
 					num += line[i + 1] - '0';
 					num *= 10;
 					num += line[i + 2] - '0';
+					break;
 				}
 				else /* The number consist of two digits */
 				{
@@ -172,11 +173,14 @@ t_ull	find_all_mul_instructions(char *line)
 	line_mul_result = 0;
 	state.mul_pos = 0;
 	next_mul = 0;
+	first_num = 0;
+	second_num = 0;
 	pos = 0;
 	while (next_mul != -1)
 	{
 		/* The "mul(" substring was found */
 		next_mul = muls_searcher(line, &state);
+		//printf("next_mul = %d\n", next_mul);
 		if (next_mul != -1) 
 		{
 			pos = next_mul + 4;
@@ -185,7 +189,7 @@ t_ull	find_all_mul_instructions(char *line)
 			 * it fits the template mul(X,Y) */
 			if (first_num != -1)
 			{
-				//printf("first_num = %d : ", first_num);
+				//printf("\tfirst_num = %d\n", first_num);
 				pos += get_num_len(first_num);
 				/* The first number was followed by a comma */
 				if (line[pos] == ',')
@@ -195,7 +199,7 @@ t_ull	find_all_mul_instructions(char *line)
 					 * it fits the template mul(X,Y) */
 					if (second_num != -1)
 					{
-						//printf("second_num = %d\n", second_num);
+						//printf("\tsecond_num = %d\n", second_num);
 						pos += get_num_len(second_num);
 						pos++;
 						//printf("pos = %d\n", pos);
@@ -203,17 +207,18 @@ t_ull	find_all_mul_instructions(char *line)
 						 * with a closing parenthesis */
 						if (line[pos] == ')')
 						{
+							//printf("\t");
 							for (int q = next_mul; q < pos + 1; q++)
 								printf("%c", line[q]);
 							printf("\n");
 							line_mul_result += first_num * second_num;
-							printf("local mul result is: %llu\n", line_mul_result);
 						}
 					}
 				}
 			} // if (first_num != -1)
 		} // if (next_mul != -1)
-	} // while (next_mul != -1)
+	} // while (next_mul != -1)	
+	printf("local mul result is: %llu\n", line_mul_result);
 	return (line_mul_result);
 }
 
@@ -257,7 +262,6 @@ int	main(int argc, char *argv[])
 			line[i] = '\0';
 			i = 0;
 			global_mul_result += find_all_mul_instructions(line);
-			printf("multiplication result is: %llu\n", global_mul_result);
 			continue;
 		}
 		if (i < MAX_LINE_LEN)
@@ -266,6 +270,8 @@ int	main(int argc, char *argv[])
 		}
 		i++;
 	}
+
+	printf("multiplication result is: %llu\n", global_mul_result);
 
 	fclose(fptr);
 	exit (EXIT_SUCCESS);
