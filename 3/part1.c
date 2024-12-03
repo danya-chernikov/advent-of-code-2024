@@ -20,6 +20,66 @@ typedef struct s_finder
 
 typedef unsigned long long t_ull;
 
+int	get_num_len(int num);
+int	muls_searcher(char *line, t_finder *state);
+int	get_num(char *line, int pos);
+t_ull	find_all_mul_instructions(char *line);
+
+int	main(int argc, char *argv[])
+{
+	char	filename[MAX_FILE_NAME_BUF + 1];
+	char	ebuf[MAX_ERR_BUF_SIZE + 1];
+	char	line[MAX_LINE_LEN + 1];
+	int		ch;
+	int		i;
+	FILE	*fptr;
+
+	/*  Global result of execution of all
+	 *  mul operations in all lines that
+	 *  were found in the file */
+	t_ull	global_mul_result;
+
+	if (argc != 2)
+	{
+		snprintf(ebuf, MAX_ERR_BUF_SIZE, "Usage: %s FILENAME", argv[0]);
+		perror(ebuf);
+		exit(EXIT_FAILURE);
+	}
+	ft_strlcpy(filename, argv[1], MAX_FILE_NAME_BUF);
+
+	fptr = fopen(filename, "r");
+	if (fptr == NULL)
+	{
+		snprintf(ebuf, MAX_ERR_BUF_SIZE, "Unable to open the file %s", argv[0]);
+		perror(ebuf);
+		exit(EXIT_FAILURE);
+	}
+
+	i = 0;
+	ch = 0;
+	global_mul_result = 0;
+	while ((ch = fgetc(fptr)) != EOF)
+	{
+		if (ch == '\n')
+		{
+			line[i] = '\0';
+			i = 0;
+			global_mul_result += find_all_mul_instructions(line);
+			continue;
+		}
+		if (i < MAX_LINE_LEN)
+		{
+			line[i] = ch;
+		}
+		i++;
+	}
+
+	printf("multiplication result is: %llu\n", global_mul_result);
+
+	fclose(fptr);
+	exit (EXIT_SUCCESS);
+}
+
 /* It counts the number of digits in a number */
 int	get_num_len(int num)
 {
@@ -32,48 +92,6 @@ int	get_num_len(int num)
 		len++;
 	}
 	return (len);
-}
-
-/*
- * It finds all the numbers in the line, divided by
- * single spaces, then puts these numbers into the
- * nums array. It returns the number of found numbers.
- * If the number of numbers exceeds the size of the nums
- * array, defined as arr_size, the function returns -1. */
-int	get_nums(char *line, int *nums, int arr_size)
-{
-	int		i;
-	int		j;
-	int		nums_cnt;
-	char	num[MAX_NUM_STR_LEN];
-
-	i = 0;
-	j = 0;
-	nums_cnt = 0;
-	while (1)
-	{
-		if (ft_isdigit(line[i]))
-		{
-			num[j] = line[i];
-			j++;
-		}
-		if (!ft_isdigit(line[i]))
-		{
-			num[j] = '\0';
-			nums[nums_cnt] = ft_atoi(num);
-			nums_cnt++;
-			j = 0;
-			if (line[i] == '\0')
-				break;
-			while (!ft_isdigit(line[i]) && line[i] != '\0')
-				i++;
-			continue;
-		}
-		if (nums_cnt > arr_size)
-			return (-1);
-		i++;
-	}
-	return (nums_cnt);
 }
 
 int	muls_searcher(char *line, t_finder *state)
@@ -220,59 +238,4 @@ t_ull	find_all_mul_instructions(char *line)
 	} // while (next_mul != -1)	
 	printf("local mul result is: %llu\n", line_mul_result);
 	return (line_mul_result);
-}
-
-int	main(int argc, char *argv[])
-{
-	char	filename[MAX_FILE_NAME_BUF + 1];
-	char	ebuf[MAX_ERR_BUF_SIZE + 1];
-	char	line[MAX_LINE_LEN + 1];
-	int		ch;
-	int		i;
-	FILE	*fptr;
-
-	/*  Global result of execution of all
-	 *  mul operations in all lines that
-	 *  were found in the file */
-	t_ull	global_mul_result;
-
-	if (argc != 2)
-	{
-		snprintf(ebuf, MAX_ERR_BUF_SIZE, "Usage: %s FILENAME", argv[0]);
-		perror(ebuf);
-		exit(EXIT_FAILURE);
-	}
-	ft_strlcpy(filename, argv[1], MAX_FILE_NAME_BUF);
-
-	fptr = fopen(filename, "r");
-	if (fptr == NULL)
-	{
-		snprintf(ebuf, MAX_ERR_BUF_SIZE, "Unable to open the file %s", argv[0]);
-		perror(ebuf);
-		exit(EXIT_FAILURE);
-	}
-
-	i = 0;
-	ch = 0;
-	global_mul_result = 0;
-	while ((ch = fgetc(fptr)) != EOF)
-	{
-		if (ch == '\n')
-		{
-			line[i] = '\0';
-			i = 0;
-			global_mul_result += find_all_mul_instructions(line);
-			continue;
-		}
-		if (i < MAX_LINE_LEN)
-		{
-			line[i] = ch;
-		}
-		i++;
-	}
-
-	printf("multiplication result is: %llu\n", global_mul_result);
-
-	fclose(fptr);
-	exit (EXIT_SUCCESS);
 }
