@@ -50,7 +50,7 @@ int	main(int argc, char *argv[])
 	fptr = fopen(filename, "r");
 	if (fptr == NULL)
 	{
-		snprintf(ebuf, MAX_ERR_BUF_SIZE, "Unable to open the file %s", argv[1]);
+		snprintf(ebuf, MAX_ERR_BUF_SIZE, "Unable to open the file %s", argv[0]);
 		perror(ebuf);
 		exit(EXIT_FAILURE);
 	}
@@ -198,6 +198,7 @@ t_ull	find_all_mul_instructions(char *line)
 	{
 		/* The "mul(" substring was found */
 		next_mul = muls_searcher(line, &state);
+		//printf("next_mul = %d\n", next_mul);
 		if (next_mul != -1) 
 		{
 			pos = next_mul + 4;
@@ -206,6 +207,7 @@ t_ull	find_all_mul_instructions(char *line)
 			 * it fits the template mul(X,Y) */
 			if (first_num != -1)
 			{
+				//printf("\tfirst_num = %d\n", first_num);
 				pos += get_num_len(first_num);
 				/* The first number was followed by a comma */
 				if (line[pos] == ',')
@@ -215,12 +217,18 @@ t_ull	find_all_mul_instructions(char *line)
 					 * it fits the template mul(X,Y) */
 					if (second_num != -1)
 					{
+						//printf("\tsecond_num = %d\n", second_num);
 						pos += get_num_len(second_num);
 						pos++;
+						//printf("pos = %d\n", pos);
 						/* The insctuction must end
 						 * with a closing parenthesis */
 						if (line[pos] == ')')
 						{
+							//printf("\t");
+							for (int q = next_mul; q < pos + 1; q++)
+								printf("%c", line[q]);
+							printf("\n");
 							line_mul_result += first_num * second_num;
 						}
 					}
@@ -228,5 +236,6 @@ t_ull	find_all_mul_instructions(char *line)
 			} // if (first_num != -1)
 		} // if (next_mul != -1)
 	} // while (next_mul != -1)	
+	printf("local mul result is: %llu\n", line_mul_result);
 	return (line_mul_result);
 }
