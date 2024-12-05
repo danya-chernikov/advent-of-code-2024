@@ -15,7 +15,7 @@
 
 /*
  * It finds all the numbers in the line, divided by
- * single spaces, then puts these numbers into the
+ * any number of any symbols then puts these numbers into the
  * nums array. It returns the number of found numbers.
  * If the number of numbers exceeds the size of the nums
  * array, defined as arr_size, the function returns -1. */
@@ -24,7 +24,7 @@ int	get_nums(char *line, int *nums, int arr_size)
 	int		i;
 	int		j;
 	int		nums_cnt;
-	char	num[MAX_NUM_STR_LEN];
+	char	num[MAX_NUM_STR_LEN + 1];
 
 	i = 0;
 	j = 0;
