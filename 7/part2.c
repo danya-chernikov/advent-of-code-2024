@@ -86,6 +86,28 @@ int		get_nums(char *line, t_ll *nums, int arr_size)
 	return (nums_cnt);
 }
 
+t_ll	count_digits(t_ll num)
+{
+	t_ll	dnum;
+
+	dnum = 0;
+	while (num != 0)
+	{
+		num /= 10;	
+		dnum++;
+	}
+	return (dnum);
+}
+
+t_ll	join_numbers(t_ll num1, t_ll num2)
+{
+	t_ll	res;
+	char	num1_buf[MAX];
+
+
+	return (res);
+}
+
 int	main(int argc, char *argv[])
 {
 	char	filename[MAX_FILE_NAME_BUF + 1];
@@ -131,101 +153,6 @@ int	main(int argc, char *argv[])
 		perror(ebuf);
 		exit(EXIT_FAILURE);
 	}
-
-	/* Let's read the ordering rules */
-	/*i = 0;
-	ch = 0;
-	line_cnt = 0;
-	total_calib_res = 0;
-	while ((ch = fgetc(fptr)) != EOF)
-	{
-		if (ch == '\n')
-		{
-			if (line_cnt < MAX_LINE_NUM)
-			{
-				line[i] = '\0';
-				line_len = i;
-				i = 0;
-
-				nums_found = get_nums(line, eq, MAX_NUMS_STR);
-				if (nums_found != 1)
-				{
-					for (int j = 0; j < nums_found; j++)
-						printf("%lld ", eq[j]);
-					printf("\n");
-
-					pos_num = nums_found - 2;
-					printf("\tpos_num = %d\n", pos_num);
-
-					perms_num = (int)pow((double)2, (double)pos_num);
-					printf("\tperms_num = %d\n", perms_num);
-
-					add_flag = 1;
-					for (int perm = 0; perm < perms_num; perm++)
-					{
-						for (int bit_ind = 0; bit_ind < pos_num; bit_ind++)
-						{
-							if (perm & (1 << bit_ind))
-								ops[bit_ind] = '+';
-							else
-								ops[bit_ind] = '*';
-						}
-
-						printf("\t");
-						for (int j = 1; j < nums_found; j++)
-						{
-							printf("%lld ", eq[j]);
-							if (j <= pos_num)
-								printf("%c ", ops[j - 1]);
-						}
-						printf("= ");
-
-						op_res = eq[1];
-						for (int j = 2; j < nums_found; j++)
-						{
-							if (ops[j - 2] == '+')
-								op_res += eq[j];
-							else
-								op_res *= eq[j];
-						}
-						if (op_res == eq[0])
-						{
-							if (add_flag)
-								total_calib_res += op_res;
-							add_flag = 0;
-							printf("\033[32m%lld !!!\033[37m", op_res);
-						}
-						else
-							printf("%lld", op_res);
-
-						printf("\n");
-					} // for (int perm = 0; perm < perms_num; perm++)
-					printf("total_calib res = %lld\n", total_calib_res);
-					printf("\n");
-				} // if (nums_found != 1)
-
-				line_cnt++;
-
-				continue;
-			}
-			else
-			{
-				line_len = i;
-				line[i] = '\0';
-				break;
-			}
-		}
-		if (i < MAX_LINE_LEN)
-			line[i] = ch;
-		else
-		{
-			line_len = i;
-			line[i] = '\0';
-			break;
-		}
-		i++;
-	}
-	*/
 
 	/* Let's read the ordering rules */
 	i = 0;
