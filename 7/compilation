@@ -1,2 +1,2 @@
-cc -O0 -g3 -Wall -Werror -Wextra part1.c libft.a -o part1
-cc -O0 -g3 -Wall -Werror -Wextra part2.c libft.a -o part2
+cc -O0 -g3 -Wall -Werror -Wextra part1.c libft.a -lm -o part1
+cc -O0 -g3 -Wall -Werror -Wextra part2.c libft.a -lm -o part2
