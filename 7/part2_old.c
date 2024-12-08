@@ -191,7 +191,6 @@ int	main(int argc, char *argv[])
 					pos_num = nums_found - 2; /* Minus test value */
 					perms_num = (int)pow((double)2, (double)pos_num);
 
-					add_flag = 1;
 					/* Number of bits in permutation is equal the number of positions */
 					for (int perm = 0; perm < perms_num; perm++)
 					{
@@ -232,6 +231,7 @@ int	main(int argc, char *argv[])
 
 						int	l_perms_num = (int)pow((double)2, (double)l_pos_num);
 
+					    add_flag = 1;
 						for (int l_perm = 0; l_perm < l_perms_num; l_perm++)
 						{
 							/* Let's create a copy of ops array */
@@ -281,34 +281,68 @@ int	main(int argc, char *argv[])
 							 * The results of calculations the expressions
 							 * that are located between '|' operators */
 
+							/* Calculate the result of the
+							 * intermediate operation */
+							t_ll	parts[MAX_NUM_STR_LEN];
+
 							/* Result of the
 							 * intermediate operation */
 							t_ll	op_res; 
 
+							int		part_ind;
 							int		j;
 
+							part_ind = 0;
 							op_res = eq[1];
 							j = 2;
-							while (j < nums_found)
+							while (j - 1 < pos_num + 2)
 							{
-                                if (ops_copy[j - 2] == '+')
-                                    op_res += eq[j];
-                                else if (ops_copy[j - 2] == '*')
-                                    op_res *= eq[j];
-                                else if (ops_copy[j - 2] == '|')
-                                    op_res = join_nums(op_res, eq[j]);
+								if (ops_copy[j - 2] == '|' || j == nums_found)
+								{
+                                    //printf("parts[%d] = %lld\n", part_ind, op_res);
+									parts[part_ind] = op_res;
+									printf("%lld|", parts[part_ind]);
+									part_ind++;
+									if (j < nums_found)
+										op_res = eq[j];
+								}
+								if (j < nums_found)
+								{
+									if (ops_copy[j - 2] == '+')
+										op_res += eq[j];
+									if (ops_copy[j - 2] == '*')
+										op_res *= eq[j];
+								}
+								else
+									break;
+
 								j++;
 							}
 
-							if (op_res == eq[0])
+							printf(" = ");
+                            
+							/* Now let's concatenate all the parts */
+							int     c;
+                            t_ll    cres;
+
+                            c = 1;
+							cres = parts[0];
+							while (c < part_ind)
+							{
+								cres = join_nums(cres, parts[c]);
+								c++;
+							}
+
+
+							if (cres == eq[0])
 							{
 								if (add_flag)
-									total_calib_res += op_res;
+									total_calib_res += cres;
 								add_flag = 0;
-								printf(" \033[32m%lld !!!\033[37m", op_res);
+								printf(" \033[32m%lld !!!\033[37m", cres);
 							}
 							else
-								printf(" %lld", op_res);
+								printf(" %lld", cres);
 
 						    printf("\n");
 
