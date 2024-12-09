@@ -6,7 +6,7 @@
 /*   By: dchernik <dchernik@student.42urduliz.com>  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/08 21:19:05 by dchernik          #+#    #+#             */
-/*   Updated: 2024/12/09 00:52:16 by dchernik         ###   ########.fr       */
+/*   Updated: 2024/12/09 02:23:06 by dchernik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,6 +86,16 @@ void    add(t_map *f, int *freq_cnt, char freq, int x, int y)
     }
 }
 
+int is_point_within_bounds(t_point p, int w, int h)
+{
+    int res;
+
+    res = 0;
+    if (p.X >= 0 && p.X < w && p.Y >= 0 && p.Y < h)
+        res = 1;
+    return (res);
+}
+
 /* It constructs a line from two points.
  * Returns two points representing antinodes
  * of this line. If the construction of the
@@ -155,7 +165,6 @@ int construct_line(t_line *res, t_point p1, t_point p2)
 
 int	main(int argc, char *argv[])
 {
-    printf("kek\n");
 	char	filename[MAX_FILE_NAME_BUF + 1];
 	char	ebuf[MAX_ERR_BUF_SIZE + 1];
 
@@ -170,6 +179,26 @@ int	main(int argc, char *argv[])
 	int		i;
 	FILE	*fptr;
 
+
+    char    m[MAX_LINE_NUM][MAX_LINE_LEN];
+    int     width;
+    int     height;
+
+    /* Counter of the unique
+     * frequencies found */
+    int     freq_cnt; 
+
+    /* A dictionary that stores all unique
+     * frequencies found */
+    t_map   *f;
+
+    f = malloc(sizeof (t_map) * MAX_LINE_NUM * MAX_LINE_LEN);
+    if (f == NULL)
+    {
+		ft_strlcpy(ebuf, "Unable to allocate memory", MAX_ERR_BUF_SIZE);
+		perror(ebuf);
+		exit(EXIT_FAILURE);
+    }
 
 	if (argc != 2)
 	{
@@ -187,9 +216,6 @@ int	main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-    char    m[MAX_LINE_NUM][MAX_LINE_LEN];
-    int     width;
-    int     height;
 
 	/* Let's read the ordering rules */
 	i = 0;
@@ -232,22 +258,13 @@ int	main(int argc, char *argv[])
     printf("width = %d\n", width);
     printf("height = %d\n", height);
 
+    /* Let's print our matrix */
     for (int i = 0; i < height; i++)
     {
         for (int j = 0; j < width; j++)
-        {
             printf("%c", m[i][j]);
-        }
         printf("\n");
     }
-
-    /* Counter of the unique
-     * frequencies found */
-    int     freq_cnt; 
-
-    /* A dictionary that stores all unique
-     * frequencies found */
-    t_map   f[MAX_LINE_NUM * MAX_LINE_LEN];
 
     for(int i = 0; i < MAX_LINE_NUM * MAX_LINE_LEN; i++)
         f[i].ant_num = 0;
@@ -269,6 +286,7 @@ int	main(int argc, char *argv[])
 
     int     anum;
     /* Let's print the generated dictionary */
+    printf("\n");
     for (int ki = 0; ki < freq_cnt; ki++)
     {
         printf("'%c' => { ", f[ki].freq);
@@ -283,30 +301,60 @@ int	main(int argc, char *argv[])
         printf("};\n");
     }
 
+    t_line  line;
+    int     res;
 
-
- /*   if (res)
+    for (int ki = 0; ki < freq_cnt; ki++)
     {
-        if (line.fa.X >= 0 && line.fa.X < width &&
-            line.sa.X >= 0 && line.sa.X < width &&
-            line.fa.Y >= 0 && line.fa.Y < height &&
-            line.sa.Y >= 0 && line.sa.Y < height)
-        {
-            m[line.fa.Y][line.fa.X] = '#';
-            m[line.sa.Y][line.sa.X] = '#';
-        }
-    }*/
+        anum = f[ki].ant_num;
+        for (int ai = 0; ai < anum; ai++)
+        { 
+            for (int aj = 0; aj < anum; aj++)
+            {
+                if (ai != aj)
+                {
+                    res = construct_line(&line, f[ki].ants[ai], f[ki].ants[aj]);
+                    if (res)
+                    {
+                        if (is_point_within_bounds(line.fa, width, height))
+                        {
+                            m[line.fa.Y][line.fa.X] = '#';
+                        }
+                        if (is_point_within_bounds(line.sa, width, height))
+                        {
+                            m[line.sa.Y][line.sa.X] = '#';
+                        }
+                    }
+                }
+            } // for (int aj = 0; aj < anum; aj++)
+        } // for (int ai = 0; ai < anum; ai++)
+    } // for (int ki = 0; ki < freq_cnt; ki++)
 
+    /* Let's print our matrix */
     printf("\n");
     for (int i = 0; i < height; i++)
     {
         for (int j = 0; j < width; j++)
-        {
             printf("%c", m[i][j]);
-        }
         printf("\n");
     }
 
+
+    /* Finally let's count the number of unique
+     * locations that contain antinode */
+    int unique_loc_num = 0;
+    for (int i = 0; i < height; i++)
+    {
+        for (int j = 0; j < width; j++)
+        {
+            if (m[j][i] == '#')
+                unique_loc_num++;
+        }
+    }
+
+    printf("The number of unique locations is %d\n", unique_loc_num);
+    
+    free(f);
 	fclose(fptr);
 	exit (EXIT_SUCCESS);
 }
