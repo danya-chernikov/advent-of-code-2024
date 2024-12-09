@@ -54,6 +54,11 @@ int	main(int argc, char *argv[])
 {
 	char	filename[MAX_FILE_NAME_BUF + 1];
 	char	ebuf[MAX_ERR_BUF_SIZE + 1];
+	char	line[MAX_LINE_LEN];
+
+	/* The length of the last
+	 * line read from a file */
+	int		line_len; 
 
 	int		ch;
 	int		i;
@@ -146,21 +151,15 @@ int	main(int argc, char *argv[])
 		} // if (i < MAX_LINE_LEN)
 		else
 			break;
+
+		line[i] = ch;
 		i++;
 	} // while ((ch = fgetc(fptr)) != EOF)
 
-	/* Let's rearrange the disk */
-	for (int bi = blk_pos - 1; bi >= 0; bi--)
-	{
-		if (blocks[bi].id != -1)
-		{
-			if (is_disk_compacted(blocks, blk_pos))
-				break;
-			blocks[ fs_blks[fbi] ].id = blocks[bi].id;
-			blocks[bi].id = -1;
-			fbi++;
-		}
-	}
+	line[i] = '\0';
+	line_len = i - 1; /* Minus end of line symbol */
+
+	/*printf("%s\n", line);
 
 	for (int bi = 0; bi < blk_pos; bi++)
 	{
@@ -169,15 +168,37 @@ int	main(int argc, char *argv[])
 		else
 			printf("%d", blocks[bi].id);
 	}
-	printf("\n");
+	printf("\n");*/
 
-	printf("last_blk_id = %d\n", last_blk_id);
+	/* Let's rearrange the disk */
+	for (int bi = blk_pos - 1; bi >= 0; bi--)
+	{
+		if (blocks[bi].id != -1)
+		{
+			if (is_disk_compacted(blocks, blk_pos))
+				break;
+
+			blocks[ fs_blks[fbi] ].id = blocks[bi].id;
+			blocks[bi].id = -1;
+			fbi++;
+
+			/*for (int bi = 0; bi < blk_pos; bi++)
+			{
+				if (blocks[bi].id == -1)
+					printf(".");
+				else
+					printf("%d", blocks[bi].id);
+			}
+			printf("\n");*/
+		}
+	}
 
 	checksum = 0;
 	/* Let's count the result checksum */
 	for (int i = 0; i < blk_pos; i++)
 	{
-		if (blocks[i].id != -1)
+		if (blocks[i].id == -1)
+			break;
 		checksum += (t_ull)i * (t_ull)blocks[i].id;
 	}
 
