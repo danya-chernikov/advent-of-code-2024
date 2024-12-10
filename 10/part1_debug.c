@@ -9,6 +9,7 @@
 # define MAX_ERR_BUF_SIZE	256
 # define MAX_LINE_LEN		64
 # define MAX_LINE_NUM		64
+# define SLEEP_TIME         0
 
 typedef struct s_point
 {
@@ -16,6 +17,9 @@ typedef struct s_point
 	int	Y;
 
 }	t_point;
+
+char    vp[MAX_LINE_NUM][MAX_LINE_LEN];
+int     call_cnt;
 
 int	look_up(char (*m)[MAX_LINE_NUM], int x, int y, int ch);
 int	look_right(char (*m)[MAX_LINE_NUM], int w, int x, int y, int ch);
@@ -43,13 +47,11 @@ int	main(int argc, char *argv[])
 	int		i;
 	FILE	*fptr;
 
-
-	t_point nines_found[MAX_LINE_NUM * MAX_LINE_LEN];
 	char	m[MAX_LINE_NUM][MAX_LINE_LEN];
+
+
 	int		width;
 	int		height;
-    int     nine_cnt;
-    int     trail_heads_sum;
 
 	if (argc != 2)
 	{
@@ -104,6 +106,29 @@ int	main(int argc, char *argv[])
 	width = line_len;
 	height = line_cnt;
 
+	/*printf("width = %d\nheight = %d\n", width, height);
+
+	printf("\n");
+	for (int i = 0; i < height; i++)
+	{
+		for (int j = 0; j < width; j++)
+			printf("%c", m[i][j]);
+		printf("\n");
+	}*/
+
+	t_point nines_found[MAX_LINE_NUM * MAX_LINE_LEN];
+
+	int	score;
+    int nine_cnt;
+    int trail_heads_sum;
+
+    /* Debugging variables */
+    for (int yi = 0; yi < height; yi++)
+        for (int xi = 0; xi < width; xi++)
+            vp[yi][xi] = 0;
+
+    call_cnt = 0;
+    /* Debugging variables */
 
     trail_heads_sum = 0;
 	for (int yi = 0; yi < height; yi++)
@@ -112,13 +137,34 @@ int	main(int argc, char *argv[])
 		{
 			if (m[yi][xi] == '0')
 			{
+                vp[yi][xi] = 1;
+                printf("m[%d][%d] = '0'\n", yi, xi);
+                printf("f(m, %d, %d, %d, %d, '0', ...)\n", width, height, xi, yi);
+                sleep(SLEEP_TIME);
+                call_cnt++;
                 nine_cnt = 0;
-                find_all_nines(m, width, height, xi, yi, '0', nines_found, &nine_cnt);
+                score = find_all_nines(m, width, height, xi, yi, '0', nines_found, &nine_cnt);
+                printf("score = %d\n", score);
                 trail_heads_sum += nine_cnt;
+                printf("returned from the %d f() call\nscore = %d\n", call_cnt, score);
+                printf("\nnine_cnt\n");
+                for (int i = 0; i < nine_cnt; i++)
+                {
+                    printf("(%d, %d)\n", nines_found[i].X, nines_found[i].Y);
+                }
+                printf("\n");
+
+                /* Let's clean up the array of coordinates of visited points */
+                for (int yi = 0; yi < height; yi++)
+                    for (int xi = 0; xi < width; xi++)
+                        vp[yi][xi] = 0;
 			}
 		}
 	}
     
+    /*printf("score = %d\n", score);
+    printf("nine_cnt = %d\n", nine_cnt);*/
+
     printf("trail heads sum = %d\n", trail_heads_sum);
 
 	fclose(fptr);
@@ -191,17 +237,42 @@ int	find_all_nines(char (*m)[MAX_LINE_NUM],
                    t_point *nines_found,
                    int *nine_cnt)
 {
+    printf("find_all_nines() says hello!\n");
 
 	int     score;
 	
 	score = 0;
+
+    vp[y][x] = 1;
+
 	if (m[y][x] == '9' &&
         !nine_was_found(nines_found, nine_cnt, (t_point){.X=x, .Y=y}))
 	{
+        printf("m[%d][%d] = '9'\n", y, x);
         nines_found[*nine_cnt].X = x;
         nines_found[*nine_cnt].Y = y;
+        printf("nines_found[%d].X = %d\n", *nine_cnt, x);
+        printf("nines_found[%d].Y = %d\n", *nine_cnt, y);
+        printf("nine_cnt++\n");
         (*nine_cnt)++;
+        printf("nine_cnt = %d\n", *nine_cnt);
 		score++;
+        printf("score++\n");
+        printf("score = %d\n", score);
+
+        for (int yi = 0; yi < h; yi++)
+        {
+            for (int xi = 0; xi < w; xi++)
+            {
+                if (vp[yi][xi])
+                    printf("\033[32m%c\033[37m", m[yi][xi]);
+                else
+                    printf("%c", m[yi][xi]);
+            }
+            printf("\n");
+        }
+        printf("\n");
+
         return (score);
 	}
 
@@ -212,6 +283,11 @@ int	find_all_nines(char (*m)[MAX_LINE_NUM],
             /* Looking up */
             if (look_up(m, x, y, (hi + 1) + '0'))
             {
+                printf("loop_up(m, %d, %d, '%c')\n", x, y, (hi + 1) + '0');
+                printf("f(m, %d, %d, %d, %d, '%c', ...)\n", w, h, x, y - 1, (hi + 1) + '0');
+                sleep(SLEEP_TIME);
+
+                call_cnt++;
                 score += find_all_nines(m,
                                         w,
                                         h,
@@ -220,10 +296,16 @@ int	find_all_nines(char (*m)[MAX_LINE_NUM],
                                         (hi + 1) + '0',
                                         nines_found,
                                         nine_cnt);
+                printf("returned from the %d f() call\nscore = %d\n\n", call_cnt, score);
             }
             /* Looking right */
             if (look_right(m, w, x, y, (hi + 1) + '0'))
             {
+                printf("loop_right(m, %d, %d, %d, '%c')\n", w, x, y, (hi + 1) + '0');
+                printf("f(m, %d, %d, %d, %d, '%c', ...)\n", w, h, x + 1, y, (hi + 1) + '0');
+                sleep(SLEEP_TIME);
+
+                call_cnt++;
                 score += find_all_nines(m,
                                         w,
                                         h,
@@ -231,10 +313,16 @@ int	find_all_nines(char (*m)[MAX_LINE_NUM],
                                         y,
                                         (hi + 1) + '0',
                                         nines_found, nine_cnt);
+                printf("returned from the %d f() call\nscore = %d\n\n", call_cnt, score);
             }
             /* Looking down */
             if (look_down(m, h, x, y, (hi + 1) + '0'))
             {
+                printf("loop_down(m, %d, %d, %d, '%c')\n", h, x, y, (hi + 1) + '0');
+                printf("f(m, %d, %d, %d, %d, '%c', ...)\n", w, h, x, y + 1, (hi + 1) + '0');
+                sleep(SLEEP_TIME);
+
+                call_cnt++;
                 score += find_all_nines(m,
                                         w,
                                         h,
@@ -243,10 +331,17 @@ int	find_all_nines(char (*m)[MAX_LINE_NUM],
                                         (hi + 1) + '0',
                                         nines_found,
                                         nine_cnt);
+                printf("returned from the %d f() call\nscore = %d\n\n", call_cnt, score);
+
             }
             /* Looking left */
             if (look_left(m, x, y, (hi + 1) + '0'))
             {
+                printf("loop_left(m, %d, %d, '%c')\n", x, y, (hi + 1) + '0');
+                printf("f(m, %d, %d, %d, %d, '%c', ...)\n", w, h, x - 1, y, (hi + 1) + '0');
+                sleep(SLEEP_TIME);
+
+                call_cnt++;
                 score += find_all_nines(m,
                                         w,
                                         h,
@@ -255,6 +350,7 @@ int	find_all_nines(char (*m)[MAX_LINE_NUM],
                                         (hi + 1) + '0',
                                         nines_found,
                                         nine_cnt);
+                printf("returned from the %d f() call\nscore = %d\n\n", call_cnt, score);
             }
         }
     }
