@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   part1.c                                            :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: dchernik <dchernik@student.42urduliz.com>  +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/12/10 23:35:51 by dchernik          #+#    #+#             */
-/*   Updated: 2024/12/10 23:35:55 by dchernik         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "libft.h"
 
 #include <stdio.h>
@@ -61,7 +49,7 @@ int	main(int argc, char *argv[])
 	int		width;
 	int		height;
     int     nine_cnt;
-    int     trail_heads_sum;
+    int     dist_hiking_trails_num;
 
 	if (argc != 2)
 	{
@@ -117,7 +105,7 @@ int	main(int argc, char *argv[])
 	height = line_cnt;
 
 
-    trail_heads_sum = 0;
+    dist_hiking_trails_num = 0;
 	for (int yi = 0; yi < height; yi++)
 	{
 		for (int xi = 0; xi < width; xi++)
@@ -126,12 +114,12 @@ int	main(int argc, char *argv[])
 			{
                 nine_cnt = 0;
                 find_all_nines(m, width, height, xi, yi, '0', nines_found, &nine_cnt);
-                trail_heads_sum += nine_cnt;
+                dist_hiking_trails_num += nine_cnt;
 			}
 		}
 	}
     
-    printf("trail heads sum = %d\n", trail_heads_sum);
+    printf("the number of distinct hiking trails is %d\n", dist_hiking_trails_num);
 
 	fclose(fptr);
 	exit (EXIT_SUCCESS);
@@ -207,8 +195,7 @@ int	find_all_nines(char (*m)[MAX_LINE_NUM],
 	int     score;
 	
 	score = 0;
-	if (m[y][x] == '9' &&
-        !nine_was_found(nines_found, nine_cnt, (t_point){.X=x, .Y=y}))
+	if (m[y][x] == '9')
 	{
         nines_found[*nine_cnt].X = x;
         nines_found[*nine_cnt].Y = y;
