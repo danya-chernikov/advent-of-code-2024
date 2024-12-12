@@ -6,18 +6,15 @@
 /*   By: dchernik <dchernik@student.42urduliz.com>  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/11 21:03:15 by dchernik          #+#    #+#             */
-/*   Updated: 2024/12/11 22:51:13 by dchernik         ###   ########.fr       */
+/*   Updated: 2024/12/11 23:01:37 by dchernik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "libft.h"
-#include "task11.h"
-
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
+#include <string.h>
+#include <ctype.h>
 #include <time.h>
-#include <unistd.h>
 
 #include <sys/time.h>
 
@@ -57,7 +54,6 @@ int	main(int argc, char *argv[])
     struct timespec stop; 
     struct timespec duration;
 
-    t_ll    *pebbles;
     t_ll    pebble_cnt;
     t_ll    pleft;
     t_ll    pright;
@@ -71,9 +67,9 @@ int	main(int argc, char *argv[])
 		perror(ebuf);
 		exit(EXIT_FAILURE);
 	}
-	ft_strlcpy(filename, argv[1], MAX_FILE_NAME_BUF);
+	strncpy(filename, argv[1], MAX_FILE_NAME_BUF);
 
-    blinks_num = ft_atoi(argv[2]);
+    blinks_num = atoi(argv[2]);
 
 	fptr = fopen(filename, "r");
 	if (fptr == NULL)
@@ -273,12 +269,12 @@ static int  get_nums(char *line, t_ll *nums, int arr_size)
 	nums_cnt = 0;
 	while (1)
 	{
-		if (ft_isdigit(line[i]))
+		if (isdigit(line[i]))
 		{
 			num[j] = line[i];
 			j++;
 		}
-		if (!ft_isdigit(line[i]))
+		if (!isdigit(line[i]))
 		{
 			num[j] = '\0';
 			nums[nums_cnt] = ft_atoll(num);
@@ -286,7 +282,7 @@ static int  get_nums(char *line, t_ll *nums, int arr_size)
 			j = 0;
 			if (line[i] == '\0')
 				break;
-			while (!ft_isdigit(line[i]) && line[i] != '\0')
+			while (!isdigit(line[i]) && line[i] != '\0')
 				i++;
 			continue;
 		}
