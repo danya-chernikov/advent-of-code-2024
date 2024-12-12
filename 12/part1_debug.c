@@ -190,6 +190,18 @@ int	main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
+	printf("width: %d\n", width);
+	printf("height: %d\n", height);
+	
+	printf("\n");
+	for (int yi = 0; yi < height; yi++)
+	{
+		for (int xi = 0; xi < width; xi++)
+			printf("%c", m[yi][xi]);
+		printf("\n");
+	}
+	printf("\n");
+
 	/* Clean up the debugging array */
     for (int yi = 0; yi < height; yi++)
         for (int xi = 0; xi < width; xi++)
@@ -220,6 +232,17 @@ int	main(int argc, char *argv[])
 			/* If a plot hasn't been found yet */
 			if (!plot_was_found(plots_found, &plot_cnt, xi, yi))
 			{
+
+                printf("m[%d][%d] = %c\n", yi, xi, m[yi][xi]);
+                printf("f(m, %d, %d, %d, %d, %c, ...)\n",
+                       width,
+                       height,
+                       xi,
+                       yi,
+                       m[yi][xi]);
+
+                sleep(SLEEP_TIME);
+
                 groups[group_cnt].group_id = group_cnt;
                 groups[group_cnt].plant = m[yi][xi];
                 group_cnt++;
@@ -235,6 +258,21 @@ int	main(int argc, char *argv[])
 								&group_cnt,
 								plots_found,
 								&plot_cnt);
+
+                printf("returned from the %d f()\n", call_cnt);
+                printf("\nThe group %d was found containing %d the plots:\n",
+                       group_cnt - 1,
+                       groups[group_cnt - 1].plots_num);
+
+                for (int pi = 0; pi < groups[group_cnt - 1].plots_num; pi++)
+                {
+                    printf("%d. (%d, %d) has %d edges\n",
+                           pi,
+                           groups[group_cnt - 1].plots[pi]->X,
+                           groups[group_cnt - 1].plots[pi]->Y,
+                           groups[group_cnt - 1].plots[pi]->edges_num);
+                }
+                printf("\n");
 
                 /* Let's clean up the array of
                  * coordinates of visited points */
@@ -345,11 +383,15 @@ int	find_all_groups(char (*m)[MAX_LINE_NUM],
 					t_plot *plots_found,
 					int *plot_cnt)
 {
+    printf("find_all_groups() says hello!\n");
+
     /* If this plot does not
      * grow the same plant type
      * as the plot found previously */
 	if (m[y][x] != plant)
     {
+        printf("m[%d][%d] != %c\n", y, x, plant);
+        printf("return\n");
         /* We just go to the next
          * map cell (to check the
          * next plot) */
@@ -360,6 +402,8 @@ int	find_all_groups(char (*m)[MAX_LINE_NUM],
      * if it is part of another plot group */
     if(plot_was_found(plots_found, plot_cnt, x, y))
     {
+        printf("plot (%d, %d) has been found\n", x, y);
+        printf("return\n");
         /* We just go to the next
          * map cell (to check the
          * next plot) */
@@ -380,6 +424,15 @@ int	find_all_groups(char (*m)[MAX_LINE_NUM],
     plots_found[*plot_cnt].plant = plant;
     plots_found[*plot_cnt].group = (void *)&groups[(*group_cnt) - 1];
 
+    printf("Creating a new plot\n");
+    printf("plots_found[%d].X = %d\n", *plot_cnt, x);
+    printf("plots_found[%d].Y = %d\n", *plot_cnt, y);
+    printf("plots_found[%d].plant = %c\n", *plot_cnt, plant);
+    printf("plots_found[%d].group = groups[%d] = %p\n",
+           *plot_cnt,
+           (*group_cnt) - 1,
+           (void *)&groups[(*group_cnt) - 1]);
+
     /* ############################################################ */
 
 
@@ -389,11 +442,43 @@ int	find_all_groups(char (*m)[MAX_LINE_NUM],
     groups[(*group_cnt) - 1].plots[ groups[(*group_cnt) - 1].plots_num ] = (void *)&plots_found[*plot_cnt];
     groups[(*group_cnt) - 1].plots_num++;
 
+    printf("Adding plot into the current plot group\n");
+
+    printf("groups[%d].plots[%d] = plots_found[%d] = %p\n",
+           (*group_cnt) - 1,
+           groups[(*group_cnt) - 1].plots_num,
+           *plot_cnt,
+           (void *)&plots_found[*plot_cnt]);
+
+    printf("groups[%d].plots_num++\n", (*group_cnt) - 1);
+    printf("groups[%d].plots_num = %d\n",
+           (*group_cnt) - 1,
+           groups[(*group_cnt) - 1].plots_num);
+
     /* ############################################################ */
 
 
     /* And only now when all asignments was finished */
+    printf("plot_cnt++\n");
+
     (*plot_cnt)++; /* Increment global plot counter */
+
+    printf("plot_cnt = %d\n", *plot_cnt);
+
+    /* Print the map, marking the
+     * current plot on it in green */
+    for (int yi = 0; yi < h; yi++)
+    {
+        for (int xi = 0; xi < w; xi++)
+        {
+            if (vp[yi][xi])
+                printf("\033[32m%c\033[37m", m[yi][xi]);
+            else
+                printf("%c", m[yi][xi]);
+        }
+        printf("\n");
+    }
+    printf("\n");
 
     /* Now we continue our search by determining which
      * direction to go. We check in four directions: up,
@@ -406,6 +491,10 @@ int	find_all_groups(char (*m)[MAX_LINE_NUM],
     /* We found a plot with a `plant` on the top */
     if (look_up(m, x, y, plant))
     {
+        printf("look_up(m, %d, %d, '%c')\n", x, y, plant);
+        printf("f(m, %d, %d, %d, %d, '%c', ...)\n", w, h, x, y - 1, plant);
+        sleep(SLEEP_TIME);
+
         call_cnt++;
         find_all_groups(m,
                         w,
@@ -417,6 +506,8 @@ int	find_all_groups(char (*m)[MAX_LINE_NUM],
                         group_cnt,
                         plots_found,
                         plot_cnt);
+
+        printf("returned from the %d f() call\n\n", call_cnt);
     }
     /* We did not found a plot with a `plant` on the top */
     else
@@ -431,6 +522,10 @@ int	find_all_groups(char (*m)[MAX_LINE_NUM],
     /* We found a plot with a `plant` on the right */
     if (look_right(m, w, x, y, plant))
     {
+        printf("look_right(m, %d, %d, %d, '%c')\n", w, x, y, plant);
+        printf("f(m, %d, %d, %d, %d, '%c', ...)\n", w, h, x + 1, y, plant);
+        sleep(SLEEP_TIME);
+
         call_cnt++;
         find_all_groups(m,
                         w,
@@ -442,6 +537,8 @@ int	find_all_groups(char (*m)[MAX_LINE_NUM],
                         group_cnt,
                         plots_found,
                         plot_cnt);
+
+        printf("returned from the %d f() call\n", call_cnt);
     }
     /* We did not found a plot with a `plant` on the right */
     else
@@ -456,6 +553,10 @@ int	find_all_groups(char (*m)[MAX_LINE_NUM],
     /* We found a plot with a `plant` in the bottom cell */
     if (look_down(m, h, x, y, plant))
     {
+        printf("look_down(m, %d, %d, %d, '%c')\n", h, x, y, plant);
+        printf("f(m, %d, %d, %d, %d, '%c', ...)\n", w, h, x, y + 1, plant);
+        sleep(SLEEP_TIME);
+
         call_cnt++;
         find_all_groups(m,
                         w,
@@ -467,6 +568,8 @@ int	find_all_groups(char (*m)[MAX_LINE_NUM],
                         group_cnt,
                         plots_found,
                         plot_cnt);
+
+        printf("returned from the %d f() call\n", call_cnt);
     }
     /* We did not found a plot with a `plant` in the bottom cell */
     else
@@ -481,6 +584,10 @@ int	find_all_groups(char (*m)[MAX_LINE_NUM],
     /* We found a plot with a `plant` on the left */
     if (look_left(m, x, y, plant))
     {
+        printf("look_left(m, %d, %d, '%c')\n", x, y, plant);
+        printf("f(m, %d, %d, %d, %d, '%c', ...)\n", w, h, x - 1, y, plant);
+        sleep(SLEEP_TIME);
+
         call_cnt++;
         find_all_groups(m,
                         w,
@@ -492,6 +599,8 @@ int	find_all_groups(char (*m)[MAX_LINE_NUM],
                         group_cnt,
                         plots_found,
                         plot_cnt);
+
+        printf("returned from the %d f() call\n", call_cnt);
     }
     /* We did not found a plot with a `plant` on the left */
     else
