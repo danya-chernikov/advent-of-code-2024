@@ -13,16 +13,15 @@
 # define MAX_ERR_BUF_SIZE	256
 # define MAX_NUM_STR_LEN	32
 # define MAX_LINE_LEN		256
-# define MAX_LINE_NUM		2048
+# define MAX_LINE_NUM		1024
 # define MAX_NUMS_STR		32
-# define MAX_MACHINES_NUM   256
 
 # define BTN_A_COST			3
 # define BTN_B_COST			1
 
 typedef long long t_ll;
 
-typedef struct	s_machine
+/*typedef struct	s_machine
 {
 	int	btn_A_X;
 	int	btn_A_Y;
@@ -33,7 +32,7 @@ typedef struct	s_machine
 	int prize_X;
 	int	prize_Y;
 
-}	t_machine;
+}	t_machine;*/
 
 t_ll	ft_atoll(const char *s)
 {
@@ -138,12 +137,19 @@ int	main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-    t_machine   m[256];
-
 	int	coords[5];
 
     int nums_found;
 	int	machine_cnt;
+
+	int	btn_A_X;
+	int	btn_A_Y;
+
+	int	btn_B_X;
+	int	btn_B_Y;
+
+	int prize_X;
+	int	prize_Y;
 
 	/* The program quitting
 	 * flag. We set it 1 if
@@ -180,25 +186,29 @@ int	main(int argc, char *argv[])
                     {
                         if (comp_cnt == 0 && line_cnt > 0)
                         {
+                            printf("Button A: X+%d, Y+%d\n", btn_A_X, btn_A_Y);
+                            printf("Button B: X+%d, Y+%d\n", btn_B_X, btn_B_Y);
+                            printf("Prize: X=%d, Y=%d\n\n", prize_X, prize_Y);
+
                             machine_cnt++;
                         }
                         /* A button info */
                         if (comp_cnt == 0)
                         {
-                            m[machine_cnt].btn_A_X = coords[1];
-                            m[machine_cnt].btn_A_Y = coords[2];
+                            btn_A_X = coords[1];
+                            btn_A_Y = coords[2];
                         }
                         /* B button info */
                         else if (comp_cnt == 1)
                         {
-                            m[machine_cnt].btn_B_X = coords[1];
-                            m[machine_cnt].btn_B_Y = coords[2];
+                            btn_B_X = coords[1];
+                            btn_B_Y = coords[2];
                         }
                         /* Prize location info */
                         else if (comp_cnt == 2)
                         {
-                            m[machine_cnt].prize_X = coords[1];
-                            m[machine_cnt].prize_Y = coords[2];
+                            prize_X = coords[1];
+                            prize_Y = coords[2];
                         }
                     }
                     comp_cnt++;
@@ -226,18 +236,14 @@ int	main(int argc, char *argv[])
 	}
     machine_cnt++;
 
-    for (int mi = 0; mi < machine_cnt; mi++)
-    {
-        printf("Button A: X+%d, Y+%d\n", m[mi].btn_A_X, m[mi].btn_A_Y);
-        printf("Button B: X+%d, Y+%d\n", m[mi].btn_B_X, m[mi].btn_B_Y);
-        printf("Prize: X=%d, Y=%d\n\n", m[mi].prize_X, m[mi].prize_Y);
-    }
+    printf("Button A: X+%d, Y+%d\n", btn_A_X, btn_A_Y);
+    printf("Button B: X+%d, Y+%d\n", btn_B_X, btn_B_Y);
+    printf("Prize: X=%d, Y=%d\n\n", prize_X, prize_Y);
 
 
-    for (int mi = 0; mi < machine_cnt; mi++)
-    {
+    printf("line_len = %d\n", line_len);
 
-    }
+    printf("machine_cnt = %d\n", machine_cnt);
 
 
 
