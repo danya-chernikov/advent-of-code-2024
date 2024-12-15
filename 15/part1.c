@@ -12,7 +12,7 @@
 # define MAX_LINE_NUM			512
 # define MAX_MAP_WIDTH			64
 # define MAX_MAP_HEIGHT			64
-# define MAX_MOVES_LINE_LEN		16384
+# define MAX_MOVES_LINE_LEN		32758
 
 int	main(int argc, char *argv[])
 {
@@ -31,10 +31,12 @@ int	main(int argc, char *argv[])
 	/* A map representing
 	 * page ordering rules */
 	char	map[MAX_MAP_HEIGHT][MAX_MAP_WIDTH];
-	char	moves[MAX_MOVES_LINE_LEN];
+	char	*moves;
 	int		width; /* Actual width of the map */
 	int		height; /* Actual height of the map */
 	int		moves_line_cnt;
+
+	int		moves_num; /* The total number of moves found */
 	int		r_x; /* x position of the robot */
 	int		r_y; /* y position of the robot */
 
@@ -55,13 +57,13 @@ int	main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	/*r = (t_map *)malloc(MAX_LINE_NUM * sizeof (t_map));
-	if (!r)
+	moves = (char *)malloc(MAX_MOVES_LINE_LEN * sizeof (char));
+	if (!moves)
 	{
 		snprintf(ebuf, MAX_ERR_BUF_SIZE, "Unable to allocate memory");
 		perror(ebuf);
 		exit(EXIT_FAILURE);
-	}*/
+	}
 
 	/* Let's read the map */
 	i = 0;
@@ -94,7 +96,14 @@ int	main(int argc, char *argv[])
 			}
 		}
 		if (i < MAX_LINE_LEN)
+		{
+			if (ch == '@')
+			{
+				r_x = i;
+				r_y = line_cnt;
+			}
 			map[line_cnt][i] = ch;
+		}
 		else
 		{
 			line_len = i;
@@ -111,6 +120,9 @@ int	main(int argc, char *argv[])
 	printf("map width = %d\n", width);
 	printf("map height = %d\n", height);
 
+	printf("the robot is located at (%d, %d)\n", r_x, r_y);
+
+	/* Let's print the map */
 	printf("\n");
 	for (int yi = 0; yi < height; yi++)
 	{
@@ -160,11 +172,68 @@ int	main(int argc, char *argv[])
 		i++;
 	}
 
-	printf("We got %d moves lines\n", moves_line_cnt);
+	moves_num = ft_strlen(moves);
 
+	printf("We got %d moves lines\n", moves_line_cnt);
+	printf("We got %d moves in total\n", moves_num);
 	printf("\n%s\n", moves);
 
+	
+	for (int mi = 0; mi < moves_num; mi++)
+	{
+		/* Moving up */
+		if (moves[mi] == '^')
+		{
+			go_up(map, width, height, r_x, r_y);
+			/* We are within the map boundaries, and the
+			 * tile we are stepping onto is not a wall */
+			if (map[r_y - 1][r_x] != '#' && r_y - 1 > 0)
+			{
+				/* We have a box on top of us */
+				if (map[r_y - 1][r_x] == 'O')
+				{
+					if (map[r_y - 2][r_x] != '#' && r_y - 2 > 0)
+					{
+						map[r_y][r_x] = '.';
+						map[r_y - 1][r_x] = '@';
+						map[r_y - 2][r_x] = 'O';
+						r_y--;
+					}
+				}
+				else /* It's just an empty tile (a dot symbol) */
+				{
+					map[r_y][r_x] = '.';
+					map[r_y - 1][r_x] = '@';
+					r_y--;
+				}
+			}
+		}
+		else if (moves[mi] == '>')
+		{
 
+		}
+		else if (moves[mi] == 'v')
+		{
+
+		}
+		else if (moves[mi] == '<')
+		{
+
+		}
+	}
+
+	/* Let's print the map */
+	printf("\n");
+	for (int yi = 0; yi < height; yi++)
+	{
+		for (int xi = 0; xi < width; xi++)
+			printf("%c", map[yi][xi]);
+		printf("\n");
+	}
+	printf("\n");
+
+
+	free(moves);
 	fclose(fptr);
 	exit (EXIT_SUCCESS);
 }
