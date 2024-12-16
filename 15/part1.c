@@ -13,6 +13,10 @@
 # define MAX_MAP_WIDTH			64
 # define MAX_MAP_HEIGHT			64
 # define MAX_MOVES_LINE_LEN		32758
+# define SLEEP_TIME             1
+# define USLEEP_TIME            5*10E4
+
+# define clear() printf("\033[H\033[J")
 
 int	main(int argc, char *argv[])
 {
@@ -35,10 +39,12 @@ int	main(int argc, char *argv[])
 	int		width; /* Actual width of the map */
 	int		height; /* Actual height of the map */
 	int		moves_line_cnt;
-
+    int     sum_boxes_gps;
 	int		moves_num; /* The total number of moves found */
 	int		r_x; /* x position of the robot */
 	int		r_y; /* y position of the robot */
+    int     t_x; /* temp x */
+    int     t_y;
 
 
 	if (argc != 2)
@@ -117,21 +123,6 @@ int	main(int argc, char *argv[])
 	 * the map section and moves */
 	height = line_cnt - 1; 
 
-	printf("map width = %d\n", width);
-	printf("map height = %d\n", height);
-
-	printf("the robot is located at (%d, %d)\n", r_x, r_y);
-
-	/* Let's print the map */
-	printf("\n");
-	for (int yi = 0; yi < height; yi++)
-	{
-		for (int xi = 0; xi < width; xi++)
-			printf("%c", map[yi][xi]);
-		printf("\n");
-	}
-	printf("\n");
-
 	moves[0] = '\0';
 	
 	/* Let's read the moves */
@@ -147,11 +138,8 @@ int	main(int argc, char *argv[])
 				line[i] = '\0';
 				line_len = i;
 				i = 0;
-
 				ft_strlcat(moves, line, MAX_MOVES_LINE_LEN);
-
 				moves_line_cnt++;
-
 				continue;
 			}
 			else
@@ -174,17 +162,11 @@ int	main(int argc, char *argv[])
 
 	moves_num = ft_strlen(moves);
 
-	printf("We got %d moves lines\n", moves_line_cnt);
-	printf("We got %d moves in total\n", moves_num);
-	printf("\n%s\n", moves);
-
-	
 	for (int mi = 0; mi < moves_num; mi++)
 	{
 		/* Moving up */
 		if (moves[mi] == '^')
 		{
-			go_up(map, width, height, r_x, r_y);
 			/* We are within the map boundaries, and the
 			 * tile we are stepping onto is not a wall */
 			if (map[r_y - 1][r_x] != '#' && r_y - 1 > 0)
@@ -192,13 +174,33 @@ int	main(int argc, char *argv[])
 				/* We have a box on top of us */
 				if (map[r_y - 1][r_x] == 'O')
 				{
-					if (map[r_y - 2][r_x] != '#' && r_y - 2 > 0)
-					{
-						map[r_y][r_x] = '.';
-						map[r_y - 1][r_x] = '@';
-						map[r_y - 2][r_x] = 'O';
-						r_y--;
-					}
+                    t_y = r_y - 1;
+                    while (map[t_y][r_x] == 'O' && t_y > 0)
+                        t_y--;
+                    /* So the 'O' sequence starts at r_y - 1
+                     * and ends at t_y */
+                    /* Now we need to shift all the 'O' found */
+                    int f = 0;
+                    if (t_y > 0)
+                    {
+                        for (int i = r_y - 1; i > t_y; i--)
+                        {
+                            if (map[i - 1][r_x] == '#')
+                            {
+                                f = 1;
+                                break;
+                            }
+                            map[i - 1][r_x] = map[i][r_x];
+                        }
+                        if (!f)
+                        {
+                            map[r_y][r_x] = '.';
+                            map[r_y - 1][r_x] = '@';
+                            r_y--;
+                        }
+                    }
+                    /* If there was not any shift we
+                     * don't need to move the robot */
 				}
 				else /* It's just an empty tile (a dot symbol) */
 				{
@@ -206,32 +208,153 @@ int	main(int argc, char *argv[])
 					map[r_y - 1][r_x] = '@';
 					r_y--;
 				}
-			}
-		}
+			} // if (map[r_y - 1][r_x] != '#' && r_y - 1 > 0)
+
+		} // if (moves[mi] == '^')
+
 		else if (moves[mi] == '>')
 		{
+			/* We are within the map boundaries, and the
+			 * tile we are stepping onto is not a wall */
+			if (map[r_y][r_x + 1] != '#' && r_x + 1 < width - 1)
+			{
+				/* We have a box to our right */
+				if (map[r_y][r_x + 1] == 'O')
+				{
+                    t_x = r_x + 1;
+                    while (map[r_y][t_x] == 'O' && t_x < width - 1)
+                        t_x++;
+                    /* So the 'O' sequence starts at r_x + 1 and
+                     * ends at t_x */
+                    /* Now we need to shift all the 'O' found */
+                    int f = 0;
+                    if (t_x < width - 1)
+                    {
+                        for (int i = r_x + 1; i < t_x; i++)
+                        {
+                            if (map[r_y][i + 1] == '#')
+                            {
+                                f = 1;
+                                break;
+                            }
+                            map[r_y][i + 1] = map[r_y][i];
+                        }
 
-		}
+                        if (!f)
+                        {
+                            map[r_y][r_x] = '.';
+                            map[r_y][r_x + 1] = '@';
+                            r_x++;
+                        }
+                    }
+                    /* If there was not any shift we
+                     * don't need to move the robot */
+				}
+				else /* It's just an empty tile (a dot symbol) */
+				{
+					map[r_y][r_x] = '.';
+					map[r_y][r_x + 1] = '@';
+					r_x++;
+				}
+			} // if (map[r_y][r_x + 1] != '#' && r_x + 1 < width - 1)
+
+		} // else if (moves[mi] == '>')
+
 		else if (moves[mi] == 'v')
 		{
+			if (map[r_y + 1][r_x] != '#' && r_y + 1 < height - 1)
+			{
+				if (map[r_y + 1][r_x] == 'O')
+				{
+                    t_y = r_y + 1;
+                    while (map[t_y][r_x] == 'O' && t_y < height - 1)
+                        t_y++;
 
-		}
+                    int f = 0;
+                    if (t_y < height - 1)
+                    {
+                        for (int i = r_y + 1; i < t_y; i++)
+                        {
+                            if (map[i + 1][r_x] == '#')
+                            {
+                                f = 1;
+                                break;
+                            }
+                            map[i + 1][r_x] = map[i][r_x];
+                        }
+
+                        if (!f)
+                        {
+                            map[r_y][r_x] = '.';
+                            map[r_y + 1][r_x] = '@';
+                            r_y++;
+                        }
+                    }
+				}
+				else
+				{
+					map[r_y][r_x] = '.';
+					map[r_y + 1][r_x] = '@';
+					r_y++;
+				}
+			} // if (map[r_y + 1][r_x] != '#' && r_y + 1 < height - 1)
+
+		} //else if (moves[mi] == 'v')
+
 		else if (moves[mi] == '<')
 		{
+			if (map[r_y][r_x - 1] != '#' && r_x - 1 > 0)
+			{
+				if (map[r_y][r_x - 1] == 'O')
+				{
+                    t_x = r_x - 1;
+                    while (map[r_y][t_x] == 'O' && t_x > 0)
+                        t_x--;
 
-		}
-	}
+                    int f = 0;
+                    if (t_x > 0)
+                    {
+                        for (int i = r_x - 1; i > t_x; i--)
+                        {
+                            if (map[r_y][i - 1] == '#')
+                            {
+                                f = 1;
+                                break;
+                            }
+                            map[r_y][i - 1] = map[r_y][i];
+                        }
 
-	/* Let's print the map */
-	printf("\n");
-	for (int yi = 0; yi < height; yi++)
-	{
-		for (int xi = 0; xi < width; xi++)
-			printf("%c", map[yi][xi]);
-		printf("\n");
-	}
-	printf("\n");
+                        if (!f)
+                        {
+                            map[r_y][r_x] = '.';
+                            map[r_y][r_x - 1] = '@';
+                            r_x--;
+                        }
+                    }
+				}
+				else
+				{
+					map[r_y][r_x] = '.';
+					map[r_y][r_x - 1] = '@';
+					r_x--;
+				}
+			} // if (map[r_y][r_x - 1] != '#' && r_x - 1 > 0)
 
+		} // else if (moves[mi] == '<')
+
+	} // for (int mi = 0; mi < moves_num; mi++)
+
+    sum_boxes_gps = 0;
+    for (int yi = 0; yi < height; yi++)
+    {
+        for (int xi = 0; xi < width; xi++)
+        {
+            if (map[yi][xi] == 'O')
+                sum_boxes_gps += (yi * 100) + xi;
+        }
+    }
+
+    printf("sum of all boxes' GPS coordinates is %d\n", sum_boxes_gps);
 
 	free(moves);
 	fclose(fptr);
