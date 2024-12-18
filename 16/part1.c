@@ -6,7 +6,7 @@
 /*   By: dchernik <dchernik@student.42urduliz.com>  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/18 01:59:14 by dchernik          #+#    #+#             */
-/*   Updated: 2024/12/18 02:17:40 by dchernik         ###   ########.fr       */
+/*   Updated: 2024/12/18 17:52:05 by dchernik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -244,6 +244,7 @@ int	main(int argc, char *argv[])
     /* Count the number of directions in
      * which we can go from each vertex.
      * Also we count the number of tiles */
+	tile_num = 0;
     for (int yi = 0; yi < height; yi++)
     {
         for (int xi = 0; xi < width; xi++)
@@ -316,7 +317,16 @@ int	main(int argc, char *argv[])
         {
             vert_was_found = 1;
 			t[ti].is_fork = 1;
-			t[ti].turns_num = 1;;
+			t[ti].turns_num = 1;
+        }
+
+		/* And finally it's also a good practice
+		 * to detect isolated vertices */
+        if (!t[ti].up && !t[ti].down && !t[ti].left && !t[ti].right)
+        {
+            vert_was_found = 1;
+			t[ti].is_fork = 1;
+			t[ti].turns_num = 0;
         }
 
         if (vert_was_found)
@@ -360,7 +370,16 @@ int	main(int argc, char *argv[])
         }
 	}
 
-    /* he distances between v[vi]
+	/* We no longer need
+	 * the array of tiles */
+	free(t);
+
+
+	/* Let's find all incident vertices
+	 * for each vertex in the graph
+	 * represented by `v` */
+
+    /* The distances between v[vi]
      * and all the other vertices
      * that may be connected with it */
     t_pair  dists[1000];
@@ -466,7 +485,7 @@ int	main(int argc, char *argv[])
                         continue;
 
                     dists[dist_cnt].v_num = v[vi2].number;
-                    dists[dist_cnt].dist = v[vi2].y - v[vi].y;
+                    dists[dist_cnt].dist = v[vi2].x - v[vi].x;
                     dist_cnt++;
                 }
             }
@@ -552,7 +571,7 @@ int	main(int argc, char *argv[])
                         continue;
 
                     dists[dist_cnt].v_num = v[vi2].number;
-                    dists[dist_cnt].dist = v[vi].y - v[vi2].y;
+                    dists[dist_cnt].dist = v[vi].x - v[vi2].x;
                     dist_cnt++;
                 }
             }
@@ -598,11 +617,13 @@ int	main(int argc, char *argv[])
      * of the Reindeer */
     //direct = EAST;
 
-
+	/* Finally, let's find the shortest
+	 * path in the undirected, unweighted
+	 * graph represented by `v` */
+	
 
 
     free(v);
-	free(t);
 	fclose(fptr);
 	exit (EXIT_SUCCESS);
 }
