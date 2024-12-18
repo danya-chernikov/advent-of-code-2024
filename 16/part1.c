@@ -6,7 +6,7 @@
 /*   By: dchernik <dchernik@student.42urduliz.com>  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/18 01:59:14 by dchernik          #+#    #+#             */
-/*   Updated: 2024/12/18 17:52:05 by dchernik         ###   ########.fr       */
+/*   Updated: 2024/12/18 18:54:59 by dchernik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -611,6 +611,8 @@ int	main(int argc, char *argv[])
         if (v[vi].left_v_num != -1)
             printf("\tleft: %d\n", v[vi].left_v_num);
     }
+
+	int	vert_queue;
 
 
     /* Set up the initial direction
