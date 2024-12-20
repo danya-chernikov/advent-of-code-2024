@@ -6,7 +6,7 @@
 /*   By: dchernik <dchernik@student.42urduliz.com>  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/18 01:59:14 by dchernik          #+#    #+#             */
-/*   Updated: 2024/12/20 19:39:36 by dchernik         ###   ########.fr       */
+/*   Updated: 2024/12/20 19:50:06 by dchernik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -763,14 +763,25 @@ void	print_graph(t_vertex *v, int vert_num)
 		printf("%d: ", vi);
 
 		if (v[vi].v_up.v_num != NONE)
-			printf("%d ", v[vi].v_up.v_num);
+		{
+			printf("{%d, ", v[vi].v_up.v_num);
+			printf("%d} ", v[vi].v_up.dist);
+		}
 		if (v[vi].v_right.v_num != NONE)
-			printf("%d ", v[vi].v_right.v_num);
+		{
+			printf("{%d, ", v[vi].v_right.v_num);
+			printf("%d} ", v[vi].v_right.dist);
+		}
 		if (v[vi].v_down.v_num != NONE)
-			printf("%d ", v[vi].v_down.v_num);
+		{
+			printf("{%d, ", v[vi].v_down.v_num);
+			printf("%d} ", v[vi].v_down.dist);
+		}
 		if (v[vi].v_left.v_num != NONE)
-			printf("%d ", v[vi].v_left.v_num);
-
+		{
+			printf("{%d, ", v[vi].v_left.v_num);
+			printf("%d} ", v[vi].v_left.dist);
+		}
 		printf("\n");
 	}
 	printf("\n");
