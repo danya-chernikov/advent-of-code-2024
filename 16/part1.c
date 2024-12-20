@@ -6,7 +6,7 @@
 /*   By: dchernik <dchernik@student.42urduliz.com>  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/18 01:59:14 by dchernik          #+#    #+#             */
-/*   Updated: 2024/12/20 23:42:32 by dchernik         ###   ########.fr       */
+/*   Updated: 2024/12/21 00:38:49 by dchernik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -149,6 +149,8 @@ void	init_vertices(t_vertex *v, t_tile *t, int tile_num);
 void	build_graph(char (*map)[MAX_MAP_HEIGHT], t_vertex *v, int vert_num);
 void	print_graph(t_vertex *v, int vert_num);
 int     *bfs(t_vertex *graph, int *from, int vert_num, int start);
+void    reverse_array(int *arr, int size);
+int     *get_path(int *from, int vert_num, int finish);
 
 /* map         - A map representing the maze;
  * width       - Actual width of the map;
@@ -183,6 +185,7 @@ int	main(int argc, char *argv[])
 	int         vert_num;
 	int			*dist;
     int         *from;
+    int         *path;
 
     /* The initial direction
      * of the Reindeer */
@@ -273,6 +276,15 @@ int	main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
     }
 
+    path = get_path(from, vert_num, end_v_num);
+    if (!path)
+    {
+		snprintf(ebuf, MAX_ERR_BUF_SIZE, "Unable to allocate memory");
+		perror(ebuf);
+        free(v);
+		exit(EXIT_FAILURE);
+    }
+
     /* Set up the initial direction
      * of the Reindeer */
 
@@ -283,7 +295,13 @@ int	main(int argc, char *argv[])
         printf("%d : %d\n", di, dist[di]);
     printf("\n");
 
+    printf("\n");
+    for (int vi = 0; path[vi] != -1; vi++)
+        printf("%d ", path[vi]);
+    printf("\n");
+
     free(v);
+    free(path);
     free(dist);
     free(from);
 	exit (EXIT_SUCCESS);
@@ -930,4 +948,36 @@ int     *bfs(t_vertex *graph, int *from, int vert_num, int start)
         }
     }
     return (dist);
+}
+
+void    reverse_array(int *arr, int size)
+{
+    int tmp;
+
+    for (int i = 0; i < (size >> 1); i++)
+    {
+        tmp = arr[i];
+        arr[i] = arr[size - 1 - i];
+        arr[size - 1 - i] = tmp;
+    }
+}
+
+int     *get_path(int *from, int vert_num, int finish)
+{
+    int *path;
+    int path_cnt;
+
+    path = (int *)malloc(vert_num * sizeof (int));
+    if (!path)
+        return (NULL);
+    for (int i = 0; i < vert_num; i++)
+        path[i] = -1;
+    path_cnt = 0;
+    for (int v = finish; v != -1; v = from[v])
+    {
+        path[path_cnt] = v;
+        path_cnt++;
+    }
+    reverse_array(path, path_cnt);
+    return (path);
 }
