@@ -1,21 +1,22 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   part1.c                                            :+:      :+:    :+:   */
+/*   part1.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: dchernik <dchernik@student.42urduliz.com>  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/18 01:59:14 by dchernik          #+#    #+#             */
-/*   Updated: 2024/12/18 18:54:59 by dchernik         ###   ########.fr       */
+/*   Updated: 2024/12/19 02:44:49 by dchernik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "libft.h"
-
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
-#include <math.h>
 #include <unistd.h>
+#include <limits.h>
+#include <math.h>
+#include <queue>
 
 # define MAX_FILE_NAME_BUF		256
 # define MAX_ERR_BUF_SIZE		256
@@ -24,10 +25,14 @@
 # define MAX_LINE_NUM			512
 # define MAX_MAP_WIDTH			256
 # define MAX_MAP_HEIGHT			256
+# define QUEUE_CAPACITY         1024
 # define SLEEP_TIME             1
 # define USLEEP_TIME            5*10E4
+# define INF                    1E9
 
 # define clear() printf("\033[H\033[J")
+
+using namespace std;
 
 typedef enum
 {
@@ -101,6 +106,12 @@ typedef struct  s_pair
 
 }   t_pair;
 
+void	enqueue(int *q, int *rear, int elem);
+int		dequeue(int *q, int *rear);
+int		queue_get_front(int *q);
+void	queue_display(int *q, int *rear);
+int     *bfs(t_vertex *graph, int vert_num, int start);
+
 int	main(int argc, char *argv[])
 {
 	char        filename[MAX_FILE_NAME_BUF + 1];
@@ -127,12 +138,16 @@ int	main(int argc, char *argv[])
      * starts its route */
 	int	        start_x;
 	int	        start_y;
+    /* Start vertex number */
+    int         start_v_num;
 
     /* x coordinate of the
      * tile where the Reindeer
      * ends its route */
 	int	        end_x;
-	int	        end_y;      
+	int	        end_y;
+    /* End vertex number */
+    int         end_v_num;
 
     /* The initial direction
      * of the Reindeer */
@@ -143,13 +158,14 @@ int	main(int argc, char *argv[])
     int         vert_was_found;
 
 
+
 	if (argc != 2)
 	{
 		snprintf(ebuf, MAX_ERR_BUF_SIZE, "Usage: %s FILENAME", argv[0]);
 		printf("%s\n", ebuf);
 		exit(EXIT_FAILURE);
 	}
-	ft_strlcpy(filename, argv[1], MAX_FILE_NAME_BUF);
+	strncpy(filename, argv[1], MAX_FILE_NAME_BUF);
 
 	fptr = fopen(filename, "r");
 	if (fptr == NULL)
@@ -611,21 +627,189 @@ int	main(int argc, char *argv[])
         if (v[vi].left_v_num != -1)
             printf("\tleft: %d\n", v[vi].left_v_num);
     }
+    printf("\n");
 
-	int	vert_queue;
+	for (int vi = 0; vi < vert_num; vi++)
+    {
+        printf("%d: ", vi);
 
+        if (v[vi].up_v_num != -1)
+            printf("%d ", v[vi].up_v_num);
+        if (v[vi].right_v_num != -1)
+            printf("%d ", v[vi].right_v_num);
+        if (v[vi].down_v_num != -1)
+            printf("%d ", v[vi].down_v_num);
+        if (v[vi].left_v_num != -1)
+            printf("%d ", v[vi].left_v_num);
 
-    /* Set up the initial direction
-     * of the Reindeer */
-    //direct = EAST;
+        printf("\n");
+    }
+    printf("\n");
+
+    /* Let's determine the vertives numbers corresponding
+     * to the start and end tiles */
+    for (int vi = 0; vi < vert_num; vi++)
+    {
+        if (v[vi].x == start_x && v[vi].y == start_y)
+            start_v_num = vi;
+        if (v[vi].x == end_x && v[vi].y == end_y)
+            end_v_num = vi;
+    }
+
+    printf("Start vertex number is: %d\n", start_v_num);
+    printf("End vertex number is: %d\n", end_v_num);
+
 
 	/* Finally, let's find the shortest
 	 * path in the undirected, unweighted
 	 * graph represented by `v` */
-	
+
+    int *dist = bfs(v, vert_num, start_v_num);
+    if (!dist)
+    {
+		snprintf(ebuf, MAX_ERR_BUF_SIZE, "Unable to allocate memory");
+		perror(ebuf);
+        free(v);
+		exit(EXIT_FAILURE);
+    }
+
+    /* Set up the initial direction
+     * of the Reindeer */
+
+    //direct = EAST;
+
+    printf("\n");
+    for (int di = 0; di < vert_num; di++)
+        printf("%d : %d\n", di, dist[di]);
+    printf("\n");
 
 
     free(v);
+    free(dist);
 	fclose(fptr);
 	exit (EXIT_SUCCESS);
+}
+
+/* This function finds the shortest path between start
+ * vertex and all the other vertices of the `v` graph */
+int     *bfs(t_vertex *graph, int vert_num, int start)
+{
+    queue<int>  q;
+    
+    /* Array of distances from the
+     * start vertex to all the other
+     * vertices of the graph `v`  */
+    int *dist;
+
+    /* Vertex's number got from queue */
+    int v;
+
+    if ( !(dist = (int *)malloc( vert_num * sizeof (int) )) )
+        return (NULL);
+    /* Initialization of the distances array */
+    for (int vi = 0; vi < vert_num; vi++)
+        dist[vi] = INF;
+    dist[start] = 0;
+
+    q.push(start);
+
+    /* While queue is not empty */
+    while (!q.empty())
+    {
+
+        /* Get front vertex
+         * from the queue */
+
+        v = q.front();
+        q.pop();
+
+        /* Let's look at all of this vertex neighbors */
+
+        int to;
+        /* If the neighbor on the right exists */
+        if (graph[v].up_v_num != -1)
+        {
+            to = graph[v].up_v_num;
+            printf("\tup neighbor: %d\n", to);
+            if (dist[to] == INF)
+            {
+                dist[to] = dist[v] + 1;
+                q.push(to);
+            }
+        }
+        if (graph[v].right_v_num != -1)
+        {
+            to = graph[v].right_v_num;
+            printf("\tright neighbor: %d\n", to);
+            if (dist[to] == INF)
+            {
+                dist[to] = dist[v] + 1;
+                q.push(to);
+            }
+        }
+        if (graph[v].down_v_num != -1)
+        {
+            to = graph[v].down_v_num;
+            printf("\tdown neighbor: %d\n", to);
+            if (dist[to] == INF)
+            {
+                dist[to] = dist[v] + 1;
+                q.push(to);
+            }
+        }
+        if (graph[v].left_v_num != -1)
+        {
+            to = graph[v].left_v_num;
+            printf("\tleft neighbor: %d\n", to);
+            if (dist[to] == INF)
+            {
+                dist[to] = dist[v] + 1;
+                q.push(to);
+            }
+        }
+
+    } // while (rear != -1)
+
+    return (dist);
+}
+
+/* It adds the element `elem` into the queue `q` */
+void	enqueue(int *q, int *rear, int elem)
+{
+	/* Check if the queue is full */
+	if (*rear == QUEUE_CAPACITY - 1)
+		return;
+	(*rear)++;
+	q[*rear] = elem;
+}
+
+/* It removes the front element of the queue `q`.
+ * In case if the queue is empty it returns 0 to
+ * indicate an error */
+int		dequeue(int *q, int *rear)
+{
+	/* Check if the queue is empty */
+	if (*rear == -1)
+		return (0);
+	for (int i = 0; i < *rear; i++)
+		q[i] = q[i + 1];
+	(*rear)--;
+	return (1);
+}
+
+int		queue_get_front(int *q)
+{
+	return (q[0]);
+}
+
+/* It printf out all elements of the queue `q`
+ * starting from front element */
+void	queue_display(int *q, int *rear)
+{
+	if (*rear != -1)
+	{
+		for (int i = 0; i <= *rear; i++)
+			printf("%d ", q[i]);
+		printf("\n");
+	}
 }
