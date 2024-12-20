@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   part1.cpp                                          :+:      :+:    :+:   */
+/*   part1.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: dchernik <dchernik@student.42urduliz.com>  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/18 01:59:14 by dchernik          #+#    #+#             */
-/*   Updated: 2024/12/20 19:50:06 by dchernik         ###   ########.fr       */
+/*   Updated: 2024/12/20 23:42:32 by dchernik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,6 @@
 #include <limits.h>
 #include <math.h>
 #include <stdbool.h>
-#include <queue>
 
 /* VERT_EDGES_NUM - the maximum number of edges
  *					coming from one vertex */
@@ -37,12 +36,18 @@
 
 # define clear() printf("\033[H\033[J")
 
-using namespace std;
-
 typedef enum
 {
     NORTH, EAST, SOUTH, WEST
 }   t_direction;
+
+typedef struct  s_queue
+{
+    int items[QUEUE_CAPACITY];
+    int front;
+    int rear;
+
+}   t_queue;
 
 typedef struct  s_pair
 {
@@ -113,6 +118,13 @@ typedef struct  s_vertex
 
 }	t_vertex;
 
+void    queue_init(t_queue *q);
+bool    is_queue_empty(t_queue *q);
+bool    is_queue_full(t_queue *q);
+void    enqueue(t_queue *q, int value);
+void    dequeue(t_queue *q);
+int     queue_get_front(t_queue *q);
+void    print_queue(t_queue *q);
 
 int		read_map(char *filename,
 				 char (*map)[MAX_MAP_HEIGHT],
@@ -136,7 +148,7 @@ int		find_vertices(t_tile *t, int tile_num);
 void	init_vertices(t_vertex *v, t_tile *t, int tile_num);
 void	build_graph(char (*map)[MAX_MAP_HEIGHT], t_vertex *v, int vert_num);
 void	print_graph(t_vertex *v, int vert_num);
-int     *bfs(t_vertex *graph, int vert_num, int start);
+int     *bfs(t_vertex *graph, int *from, int vert_num, int start);
 
 /* map         - A map representing the maze;
  * width       - Actual width of the map;
@@ -170,6 +182,7 @@ int	main(int argc, char *argv[])
     t_vertex    *v;	
 	int         vert_num;
 	int			*dist;
+    int         *from;
 
     /* The initial direction
      * of the Reindeer */
@@ -241,10 +254,17 @@ int	main(int argc, char *argv[])
     printf("Start vertex number is: %d\n", start_v_num);
     printf("End vertex number is: %d\n", end_v_num);
 
-	/* Finally, let's find the shortest
-	 * path in the undirected, unweighted
-	 * graph represented by `v` */
-    dist = bfs(v, vert_num, start_v_num);
+    if ( !(from = (int *)malloc( vert_num * sizeof (int) )) )
+    {
+		snprintf(ebuf, MAX_ERR_BUF_SIZE, "Unable to allocate memory");
+		perror(ebuf);
+        free(v);
+		exit(EXIT_FAILURE);
+    }
+
+	/* Finally, let's find the shortest path in the
+     * undirected, unweighted graph represented by `v` */
+    dist = bfs(v, from, vert_num, start_v_num);
     if (!dist)
     {
 		snprintf(ebuf, MAX_ERR_BUF_SIZE, "Unable to allocate memory");
@@ -265,7 +285,55 @@ int	main(int argc, char *argv[])
 
     free(v);
     free(dist);
+    free(from);
 	exit (EXIT_SUCCESS);
+}
+
+void    queue_init(t_queue *q)
+{
+    q->front = -1;
+    q->rear = 0;
+}
+
+bool    is_queue_empty(t_queue *q)
+{
+    return (q->front == q->rear - 1);
+}
+
+bool    is_queue_full(t_queue *q)
+{
+    return (q->rear == QUEUE_CAPACITY);
+}
+
+void    queue_push(t_queue *q, int value)
+{
+    if (is_queue_full(q))
+        return;
+    q->items[q->rear] = value;
+    q->rear++;
+}
+
+void    queue_pop(t_queue *q)
+{
+    if (is_queue_empty(q))
+        return;
+    q->front++;
+}
+
+int     queue_get_front(t_queue *q)
+{
+    if (is_queue_empty(q))
+        return (-1);
+    return (q->items[q->front + 1]);
+}
+
+void    print_queue(t_queue *q)
+{
+    if (is_queue_empty(q))
+        return;
+    for (int i = q->front + 1; i < q->rear; i++)
+        printf("%d ", q->items[i]);
+    printf("\n");
 }
 
 /* It reads a map from the file with
@@ -292,6 +360,7 @@ int		read_map(char *filename,
 	fptr = fopen(filename, "r");
 	if (fptr == NULL)
 		return (0);
+
 	i = 0;
 	line_cnt = 0;
 	while ((ch = fgetc(fptr)) != EOF)
@@ -378,10 +447,10 @@ int		find_tiles(t_tile *t,
 	for (int ti = 0; ti < width * height; ti++)
 	{
 		t[ti].is_fork = false;
-		t[ti].up = false;
-		t[ti].right = false;
-		t[ti].down = false;
-		t[ti].left = false;
+		t[ti].up      = false;
+		t[ti].right   = false;
+		t[ti].down    = false;
+		t[ti].left    = false;
 	}
 
 	tile_num = 0;
@@ -491,23 +560,23 @@ void	init_vertices(t_vertex *v, t_tile *t, int tile_num)
 	{
 		if (t[ti].is_fork)
 		{
-			v[vi].number = vi;
-			v[vi].degree = t[ti].turns_num;
+			v[vi].number  = vi;
+			v[vi].degree  = t[ti].turns_num;
 			v[vi].coord.x = t[ti].coord.x;
 			v[vi].coord.y = t[ti].coord.y;
-			v[vi].up = t[ti].up;
-			v[vi].right = t[ti].right;
-			v[vi].down = t[ti].down;
-			v[vi].left = t[ti].left;
+			v[vi].up      = t[ti].up;
+			v[vi].right   = t[ti].right;
+			v[vi].down    = t[ti].down;
+			v[vi].left    = t[ti].left;
 
-			v[vi].v_up.v_num = NONE;
-			v[vi].v_up.dist = NONE;
+			v[vi].v_up.v_num    = NONE;
+			v[vi].v_up.dist     = NONE;
 			v[vi].v_right.v_num = NONE;
-			v[vi].v_right.dist = NONE;
-			v[vi].v_down.v_num = NONE;
-			v[vi].v_down.dist = NONE;
-			v[vi].v_left.v_num = NONE;
-			v[vi].v_left.dist = NONE;
+			v[vi].v_right.dist  = NONE;
+			v[vi].v_down.v_num  = NONE;
+			v[vi].v_down.dist   = NONE;
+			v[vi].v_left.v_num  = NONE;
+			v[vi].v_left.dist   = NONE;
 			vi++;
 		}
 	}
@@ -729,7 +798,7 @@ void	build_graph(char (*map)[MAX_MAP_HEIGHT], t_vertex *v, int vert_num)
 						min_dist = (t_pair *)&dists[di];
 				}
 				v[vi].v_left.v_num = min_dist->v_num;
-				v[vi].v_left.dist = min_dist->v_num;
+				v[vi].v_left.dist = min_dist->dist;
 			}
 
 		} // if (v[vi].left)
@@ -761,7 +830,6 @@ void	print_graph(t_vertex *v, int vert_num)
 	for (int vi = 0; vi < vert_num; vi++)
 	{
 		printf("%d: ", vi);
-
 		if (v[vi].v_up.v_num != NONE)
 		{
 			printf("{%d, ", v[vi].v_up.v_num);
@@ -793,26 +861,30 @@ void	print_graph(t_vertex *v, int vert_num)
  *			  vertex to all the other vertices
  *			  of the graph `v`;
  *     v    - Vertex's number got from queue; */
-int     *bfs(t_vertex *graph, int vert_num, int start)
+int     *bfs(t_vertex *graph, int *from, int vert_num, int start)
 {
-    queue<int>	q;
     int			*dist;
-    int			v;
     int			to;
+    int			v;
+    t_queue     q;
 
     if ( !(dist = (int *)malloc( vert_num * sizeof (int) )) )
         return (NULL);
-    /* Initialization of the distances array */
+
     for (int vi = 0; vi < vert_num; vi++)
+    {
         dist[vi] = INF;
+        from[vi] = -1;
+    }
     dist[start] = 0;
-    q.push(start);
+    queue_init(&q);
+    queue_push(&q, start);
 
     /* While queue is not empty */
-    while (!q.empty())
+    while (!is_queue_empty(&q))
     {
-        v = q.front();
-        q.pop();
+        v = queue_get_front(&q);
+        queue_pop(&q);
 
         /* Let's look at all of this vertex neighbors */
         /* If the neighbor on the right exists */
@@ -822,7 +894,8 @@ int     *bfs(t_vertex *graph, int vert_num, int start)
             if (dist[to] == INF)
             {
                 dist[to] = dist[v] + 1;
-                q.push(to);
+                from[to] = v;
+                queue_push(&q, to);
             }
         }
         if (graph[v].v_right.v_num != NONE)
@@ -831,7 +904,8 @@ int     *bfs(t_vertex *graph, int vert_num, int start)
             if (dist[to] == INF)
             {
                 dist[to] = dist[v] + 1;
-                q.push(to);
+                from[to] = v;
+                queue_push(&q, to);
             }
         }
         if (graph[v].v_down.v_num != NONE)
@@ -840,7 +914,8 @@ int     *bfs(t_vertex *graph, int vert_num, int start)
             if (dist[to] == INF)
             {
                 dist[to] = dist[v] + 1;
-                q.push(to);
+                from[to] = v;
+                queue_push(&q, to);
             }
         }
         if (graph[v].v_left.v_num != NONE)
@@ -849,7 +924,8 @@ int     *bfs(t_vertex *graph, int vert_num, int start)
             if (dist[to] == INF)
             {
                 dist[to] = dist[v] + 1;
-                q.push(to);
+                from[to] = v;
+                queue_push(&q, to);
             }
         }
     }

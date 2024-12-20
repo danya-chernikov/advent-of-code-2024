@@ -1,2 +1,2 @@
-g++ -O0 -g3 -Wall -Werror -Wextra part1.c -o part1
-g++ -O0 -g3 -Wall -Werror -Wextra part2.c -o part2
+cc -O0 -g3 -Wall -Werror -Wextra part1.c -o part1
+cc -O0 -g3 -Wall -Werror -Wextra part2.c -o part2
