@@ -6,7 +6,7 @@
 /*   By: dchernik <dchernik@student.42urduliz.com>  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/18 01:59:14 by dchernik          #+#    #+#             */
-/*   Updated: 2024/12/21 19:49:21 by dchernik         ###   ########.fr       */
+/*   Updated: 2024/12/21 23:06:44 by dchernik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,12 +27,12 @@
 # define MAX_LINE_NUM		512
 # define MAX_MAP_WIDTH		256
 # define MAX_MAP_HEIGHT		256
-# define QUEUE_CAPACITY		1024
-# define VERT_EDGES_NUM		4
-# define SLEEP_TIME         1
-# define USLEEP_TIME        5*1e5
+# define QUEUE_CAPACITY		4096
+# define VERT_EDGES_NUM		4096
 # define INF				1e9
 # define NONE				-1
+# define SLEEP_TIME         1
+# define USLEEP_TIME        5*1e5
 
 # define clear() printf("\033[H\033[J")
 
@@ -133,20 +133,6 @@ int		read_map(char *filename,
 				 t_point *start,
 				 t_point *end);
 
-void	print_map_info(char (*map)[MAX_MAP_HEIGHT],
-				  int width,
-				  int hegiht,
-				  t_point *start,
-				  t_point *end);
-
-void	print_map(char (*map)[MAX_MAP_HEIGHT],
-				  int width,
-				  int height,
-				  int x,
-				  int y,
-				  char ch,
-				  t_point *start,
-				  t_point *end);
 
 int		find_tiles(t_tile *t,
 				   char (*map)[MAX_MAP_HEIGHT],
@@ -156,7 +142,6 @@ int		find_tiles(t_tile *t,
 int		find_vertices(t_tile *t, int tile_num);
 void	init_vertices(t_vertex *v, t_tile *t, int tile_num);
 void	build_graph(char (*map)[MAX_MAP_HEIGHT], t_vertex *v, int vert_num);
-void	print_graph(t_vertex *v, int vert_num);
 int     *bfs(t_vertex *graph, int *from, int vert_num, int start);
 void    reverse_array(int *arr, int size);
 int     *get_path(int *from, int vert_num, int finish);
@@ -218,8 +203,6 @@ int	main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	print_map_info(map, width, height, &start, &end);
-
 	tiles = (t_tile *)malloc((width * height) * sizeof (t_tile));
 	if (!tiles)
 	{
@@ -231,8 +214,6 @@ int	main(int argc, char *argv[])
 	tile_num = find_tiles(tiles, map, width, height);
 
 	vert_num = find_vertices(tiles, tile_num);
-
-    printf("We got %d vertices\n", vert_num);
 
     v = (t_vertex *)malloc(vert_num * sizeof (t_vertex));
 	if (!v)
@@ -251,8 +232,6 @@ int	main(int argc, char *argv[])
 
 	build_graph(map, v, vert_num);
 
-	print_graph(v, vert_num);
-
     /* Let's determine the vertives numbers corresponding
      * to the start and end tiles */
     for (int vi = 0; vi < vert_num; vi++)
@@ -262,9 +241,6 @@ int	main(int argc, char *argv[])
         if (v[vi].coord.x == end.x && v[vi].coord.y == end.y)
             end_v_num = vi;
     }
-
-    printf("Start vertex number is: %d\n", start_v_num);
-    printf("End vertex number is: %d\n", end_v_num);
 
     if ( !(from = (int *)malloc( vert_num * sizeof (int) )) )
     {
@@ -294,116 +270,45 @@ int	main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
     }
 
-    printf("\n");
-    for (int di = 0; di < vert_num; di++)
-        printf("%d : %d\n", di, dist[di]);
-    printf("\n");
-
-    printf("\n");
-    for (int vi = 0; path[vi] != -1; vi++)
-        printf("%d ", path[vi]);
-    printf("\n");
-
 	/* Let's determine how many vertices
 	 * we need to go through */
 	way_length = dist[end_v_num];
 
-	printf("way_length = %d\n", way_length);
-
-	sleep(SLEEP_TIME);
-	
 	/* Let's take a walk along
 	 * the shortest route while
 	 * counting the lowest score */
-	int	x;
-	int	y;
-	int	ch;
-
-	ch = '>';
     direct = EAST;
 	lowest_score = 0;
-	x = v[ path[0] ].coord.x;
-	y = v[ path[0] ].coord.y;
 	for (int vi = 0; vi < way_length; vi++)
 	{
-		//printf("current vertex is: %d\n", path[vi]);
-		print_map(map, width, height, x, y, ch, &start, &end);
-		sleep(SLEEP_TIME);
-		clear();
-
 		/* We need to go up */
 		if (v[ path[vi] ].coord.x == v[ path[vi + 1] ].coord.x &&
 			v[ path[vi] ].coord.y > v[ path[vi + 1] ].coord.y)
 		{
-			/* If our current direction is
-			 * north, we just step forward*/
-			if (direct == NORTH)
-			{
-				lowest_score += v[ path[vi] ].v_up.dist;
-				for (int j = 0; j < v[ path[vi] ].v_up.dist; j++)
-				{
-					//printf("go up (%d, %d)\n", x, y);
-					print_map(map, width, height, x, y, ch, &start, &end);
-					sleep(SLEEP_TIME);
-					clear();
-					y--;
-				}
-				ch = '^';
-			}
 			/* If our current direction is east we should
 			 * turn counterclockwise 90 degrees */
 			if (direct == EAST)
 			{
-				//printf("turn counterclockwise 90\n");
 				lowest_score += 1000;
-				for (int j = 0; j < v[ path[vi] ].v_up.dist; j++)
-				{
-					//printf("go up (%d, %d)\n", x, y);
-					ch = '^';
-					print_map(map, width, height, x, y, ch, &start, &end);
-					sleep(SLEEP_TIME);
-					clear();
-					y--;
-				}
 				lowest_score += v[ path[vi] ].v_up.dist;
-				ch = '>';
 			}
 			/* If our current direction is west, we should
 			 * turn clockwise 90 degrees */
 			if (direct == WEST)
 			{
-				//printf("turn clockwise 90\n");
 				lowest_score += 1000;
-				for (int j = 0; j < v[ path[vi] ].v_up.dist; j++)
-				{
-					//printf("go up (%d, %d)\n", x, y);
-					ch = '^';
-					print_map(map, width, height, x, y, ch, &start, &end);
-					sleep(SLEEP_TIME);
-					clear();
-					y--;
-				}
 				lowest_score += v[ path[vi] ].v_up.dist;
-				ch = '<';
 			}
 			/* If it's south, we should turn clockwise
 			 * or counterclockwise 90 degrees twice */
 			if (direct == SOUTH)
 			{
-				//printf("turn clockwise 180\n");
 				lowest_score += 2000;
-				for (int j = 0; j < v[ path[vi] ].v_up.dist; j++)
-				{
-					//printf("go up (%d, %d)\n", x, y);
-					ch = '^';
-					print_map(map, width, height, x, y, ch, &start, &end);
-					sleep(SLEEP_TIME);
-					clear();
-					y--;
-				}
 				lowest_score += v[ path[vi] ].v_up.dist;
-				ch = 'v';
 			}
+
+			/* If our current direction is
+			 * north, we do nothing */
 
 			/* It's very important
 			 * put it at the end */
@@ -414,66 +319,20 @@ int	main(int argc, char *argv[])
 		if (v[ path[vi] ].coord.y == v[ path[vi + 1] ].coord.y &&
 			v[ path[vi] ].coord.x < v[ path[vi + 1] ].coord.x)
 		{
-			if (direct == EAST)
-			{
-				lowest_score += v[ path[vi] ].v_right.dist;
-				ch = '>';
-				for (int j = 0; j < v[ path[vi] ].v_right.dist; j++)
-				{
-					//printf("go right (%d, %d)\n", x, y);
-					print_map(map, width, height, x, y, ch, &start, &end);
-					sleep(SLEEP_TIME);
-					clear();
-					x++;
-				}
-			}
 			if (direct == WEST)
 			{
-				//printf("turn clockwise 180\n");
 				lowest_score += 2000;
-				for (int j = 0; j < v[ path[vi] ].v_right.dist; j++)
-				{
-					//printf("go right (%d, %d)\n", x, y);
-					ch = '>';
-					print_map(map, width, height, x, y, ch, &start, &end);
-					sleep(SLEEP_TIME);
-					clear();
-					x++;
-				}
 				lowest_score += v[ path[vi] ].v_right.dist;
-				ch = '<';
 			}
 			if (direct == SOUTH)
 			{
-				//printf("turn counterclockwise 90\n");
 				lowest_score += 1000;
-				for (int j = 0; j < v[ path[vi] ].v_right.dist; j++)
-				{
-					//printf("go right (%d, %d)\n", x, y);
-					ch = '>';
-					print_map(map, width, height, x, y, ch, &start, &end);
-					sleep(SLEEP_TIME);
-					clear();
-					x++;
-				}
 				lowest_score += v[ path[vi] ].v_right.dist;
-				ch = 'v';
 			}
 			if (direct == NORTH)
 			{
-				//printf("turn clockwise 90\n");
 				lowest_score += 1000;
-				for (int j = 0; j < v[ path[vi] ].v_right.dist; j++)
-				{
-					//printf("go right (%d, %d)\n", x, y);
-					ch = '>';
-					print_map(map, width, height, x, y, ch, &start, &end);
-					sleep(SLEEP_TIME);
-					clear();
-					x++;
-				}
 				lowest_score += v[ path[vi] ].v_right.dist;
-				ch = '^';
 			}
 			direct = EAST;
 		}
@@ -482,66 +341,20 @@ int	main(int argc, char *argv[])
 		if (v[ path[vi] ].coord.x == v[ path[vi + 1] ].coord.x &&
 			v[ path[vi] ].coord.y < v[ path[vi + 1] ].coord.y)
 		{
-			if (direct == SOUTH)
-			{
-				lowest_score += v[ path[vi] ].v_down.dist;
-				ch = 'v';
-				for (int j = 0; j < v[ path[vi] ].v_down.dist; j++)
-				{
-					//printf("go down (%d, %d)\n", x, y);
-					print_map(map, width, height, x, y, ch, &start, &end);
-					sleep(SLEEP_TIME);
-					clear();
-					y++;
-				}
-			}
 			if (direct == NORTH)
 			{
-				//printf("turn clockwise 180\n");
 				lowest_score += 2000;
-				for (int j = 0; j < v[ path[vi] ].v_down.dist; j++)
-				{
-					//printf("go down (%d, %d)\n", x, y);
-					ch = 'v';
-					print_map(map, width, height, x, y, ch, &start, &end);
-					sleep(SLEEP_TIME);
-					clear();
-					y++;
-				}
 				lowest_score += v[ path[vi] ].v_down.dist;
-				ch = '^';
 			}
 			if (direct == WEST)
 			{
-				//printf("turn counterclockwise 90\n");
 				lowest_score += 1000;
-				for (int j = 0; j < v[ path[vi] ].v_down.dist; j++)
-				{
-					//printf("go down (%d, %d)\n", x, y);
-					ch = 'v';
-					print_map(map, width, height, x, y, ch, &start, &end);
-					sleep(SLEEP_TIME);
-					clear();
-					y++;
-				}
 				lowest_score += v[ path[vi] ].v_down.dist;
-				ch = '<';
 			}
 			if (direct == EAST)
 			{
-				//printf("turn clockwise 90\n");
 				lowest_score += 1000;
-				for (int j = 0; j < v[ path[vi] ].v_down.dist; j++)
-				{
-					//printf("go down (%d, %d)\n", x, y);
-					ch = 'v';
-					print_map(map, width, height, x, y, ch, &start, &end);
-					sleep(SLEEP_TIME);
-					clear();
-					y++;
-				}
 				lowest_score += v[ path[vi] ].v_down.dist;
-				ch = '>';
 			}
 			direct = SOUTH;
 		}
@@ -550,72 +363,24 @@ int	main(int argc, char *argv[])
 		if (v[ path[vi] ].coord.y == v[ path[vi + 1] ].coord.y &&
 			v[ path[vi] ].coord.x > v[ path[vi + 1] ].coord.x)
 		{
-			if (direct == WEST)
-			{
-				lowest_score += v[ path[vi] ].v_left.dist;
-				ch = '<';
-				for (int j = 0; j < v[ path[vi] ].v_left.dist; j++)
-				{
-					//printf("go left (%d, %d)\n", x, y);
-					print_map(map, width, height, x, y, ch, &start, &end);
-					sleep(SLEEP_TIME);
-					clear();
-					x--;
-				}
-			}
 			if (direct == EAST)
 			{
-				//printf("turn clockwise 180\n");
 				lowest_score += 2000;
-				for (int j = 0; j < v[ path[vi] ].v_left.dist; j++)
-				{
-					//printf("go left (%d, %d)\n", x, y);
-					ch = '<';
-					print_map(map, width, height, x, y, ch, &start, &end);
-					sleep(SLEEP_TIME);
-					clear();
-					x--;
-				}
 				lowest_score += v[ path[vi] ].v_left.dist;
-				ch = '>';
 			}
 			if (direct == SOUTH)
 			{
-				//printf("turn clockwise 90\n");
 				lowest_score += 1000;
-				for (int j = 0; j < v[ path[vi] ].v_left.dist; j++)
-				{
-					//printf("go left (%d, %d)\n", x, y);
-					ch = '<';
-					print_map(map, width, height, x, y, ch, &start, &end);
-					sleep(SLEEP_TIME);
-					clear();
-					x--;
-				}
 				lowest_score += v[ path[vi] ].v_left.dist;
-				ch = 'v';
 			}
 			if (direct == NORTH)
 			{
-				//printf("turn counterclockwise 90\n");
 				lowest_score += 1000;
-				for (int j = 0; j < v[ path[vi] ].v_left.dist; j++)
-				{
-					//printf("go left (%d, %d)\n", x, y);
-					ch = '<';
-					print_map(map, width, height, x, y, ch, &start, &end);
-					sleep(SLEEP_TIME);
-					clear();
-					x--;
-				}
 				lowest_score += v[ path[vi] ].v_left.dist;
-				ch = '^';
 			}
 			direct = WEST;
 		}
-
 	}
-	//print_map(map, width, height, x, y, ch, &start, &end);
 
 	printf("the lowest score is: %d\n", lowest_score);
 
@@ -747,66 +512,6 @@ int		read_map(char *filename,
 	*height = line_cnt;
 	fclose(fptr);
 	return (1);
-}
-
-void	print_map_info(char (*map)[MAX_MAP_HEIGHT],
-				  int width,
-				  int height,
-				  t_point *start,
-				  t_point *end)
-{
-	printf("start point is on (%d, %d)\n", start->x, start->y);
-	printf("end point is on (%d, %d)\n", end->x, end->y);
-
-	printf("width = %d\nheight = %d\n", width, height);
-
-	printf("\n");
-	for (int yi = 0; yi < height; yi++)
-	{
-		for (int xi = 0; xi < width; xi++)
-			printf("%c", map[yi][xi]);
-		printf("\n");
-	}
-	printf("\n");
-}
-
-void	print_map(char (*map)[MAX_MAP_HEIGHT],
-				  int width,
-				  int height,
-				  int x,
-				  int y,
-				  char ch,
-				  t_point *start,
-				  t_point *end)
-{
-	for (int yi = 0; yi < height; yi++)
-	{
-		for (int xi = 0; xi < width; xi++)
-		{
-			if (x == xi && y == yi)
-			{
-				printf("\033[32m%c\033[37m", ch);
-			}
-			else
-			{
-				printf("%c", map[yi][xi]);
-				/*if (xi != start->x && yi != start->y &&
-					xi != end->x && yi != end->y)
-				{
-					printf("%c", map[yi][xi]);
-				}
-				else if (xi == start->x && yi == start->y)
-				{
-					printf("%c", 'S');
-				}
-				else if (xi == end->x && yi == end->y)
-				{
-					printf("%c", 'E');
-				}*/
-			}
-		}
-		printf("\n");
-	}
 }
 
 /* Count the number of directions in
@@ -1180,55 +885,6 @@ void	build_graph(char (*map)[MAX_MAP_HEIGHT], t_vertex *v, int vert_num)
 		} // if (v[vi].left)
 
 	} // for (int vi = 0; vi < vert_num; vi++)
-}
-
-void	print_graph(t_vertex *v, int vert_num)
-{
-	/* Let's print out all found vertices */
-	for (int vi = 0; vi < vert_num; vi++)
-	{
-		printf("\nvertex %d\n", vi);
-		printf("\tdegree: %d\n", v[vi].degree);
-		printf("\tx: %d\n", v[vi].coord.x);
-		printf("\ty: %d\n", v[vi].coord.y);
-
-		if (v[vi].v_up.v_num != NONE)
-			printf("\tup: %d\n", v[vi].v_up.v_num);
-		if (v[vi].v_right.v_num != NONE)
-			printf("\tright: %d\n", v[vi].v_right.v_num);
-		if (v[vi].v_down.v_num != NONE)
-			printf("\tdown: %d\n", v[vi].v_down.v_num);
-		if (v[vi].v_left.v_num != NONE)
-			printf("\tleft: %d\n", v[vi].v_left.v_num);
-	}
-	printf("\n");
-
-	for (int vi = 0; vi < vert_num; vi++)
-	{
-		printf("%d: ", vi);
-		if (v[vi].v_up.v_num != NONE)
-		{
-			printf("{%d, ", v[vi].v_up.v_num);
-			printf("%d} ", v[vi].v_up.dist);
-		}
-		if (v[vi].v_right.v_num != NONE)
-		{
-			printf("{%d, ", v[vi].v_right.v_num);
-			printf("%d} ", v[vi].v_right.dist);
-		}
-		if (v[vi].v_down.v_num != NONE)
-		{
-			printf("{%d, ", v[vi].v_down.v_num);
-			printf("%d} ", v[vi].v_down.dist);
-		}
-		if (v[vi].v_left.v_num != NONE)
-		{
-			printf("{%d, ", v[vi].v_left.v_num);
-			printf("%d} ", v[vi].v_left.dist);
-		}
-		printf("\n");
-	}
-	printf("\n");
 }
 
 /* This function finds the shortest path between start

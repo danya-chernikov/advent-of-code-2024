@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   part1.c                                            :+:      :+:    :+:   */
+/*   part1_debug.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: dchernik <dchernik@student.42urduliz.com>  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/18 01:59:14 by dchernik          #+#    #+#             */
-/*   Updated: 2024/12/21 19:42:25 by dchernik         ###   ########.fr       */
+/*   Updated: 2024/12/21 23:09:10 by dchernik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,8 +27,8 @@
 # define MAX_LINE_NUM		512
 # define MAX_MAP_WIDTH		256
 # define MAX_MAP_HEIGHT		256
-# define QUEUE_CAPACITY		1024
-# define VERT_EDGES_NUM		4
+# define QUEUE_CAPACITY		4096
+# define VERT_EDGES_NUM		4096
 # define SLEEP_TIME         1
 # define USLEEP_TIME        5*1e5
 # define INF				1e9
@@ -348,7 +348,7 @@ int	main(int argc, char *argv[])
 					clear();
 					y--;
 				}
-				ch = '^';
+				//ch = '^';
 			}
 			/* If our current direction is east we should
 			 * turn counterclockwise 90 degrees */
@@ -366,7 +366,7 @@ int	main(int argc, char *argv[])
 					y--;
 				}
 				lowest_score += v[ path[vi] ].v_up.dist;
-				ch = '>';
+				//ch = '>';
 			}
 			/* If our current direction is west, we should
 			 * turn clockwise 90 degrees */
@@ -384,7 +384,7 @@ int	main(int argc, char *argv[])
 					y--;
 				}
 				lowest_score += v[ path[vi] ].v_up.dist;
-				ch = '<';
+				//ch = '<';
 			}
 			/* If it's south, we should turn clockwise
 			 * or counterclockwise 90 degrees twice */
@@ -402,7 +402,7 @@ int	main(int argc, char *argv[])
 					y--;
 				}
 				lowest_score += v[ path[vi] ].v_up.dist;
-				ch = 'v';
+				//ch = 'v';
 			}
 
 			/* It's very important
@@ -417,7 +417,6 @@ int	main(int argc, char *argv[])
 			if (direct == EAST)
 			{
 				lowest_score += v[ path[vi] ].v_right.dist;
-				ch = '>';
 				for (int j = 0; j < v[ path[vi] ].v_right.dist; j++)
 				{
 					//printf("go right (%d, %d)\n", x, y);
@@ -441,7 +440,7 @@ int	main(int argc, char *argv[])
 					x++;
 				}
 				lowest_score += v[ path[vi] ].v_right.dist;
-				ch = '<';
+				//ch = '<';
 			}
 			if (direct == SOUTH)
 			{
@@ -457,7 +456,7 @@ int	main(int argc, char *argv[])
 					x++;
 				}
 				lowest_score += v[ path[vi] ].v_right.dist;
-				ch = 'v';
+				//ch = 'v';
 			}
 			if (direct == NORTH)
 			{
@@ -473,7 +472,7 @@ int	main(int argc, char *argv[])
 					x++;
 				}
 				lowest_score += v[ path[vi] ].v_right.dist;
-				ch = '^';
+				//ch = '^';
 			}
 			direct = EAST;
 		}
@@ -485,7 +484,6 @@ int	main(int argc, char *argv[])
 			if (direct == SOUTH)
 			{
 				lowest_score += v[ path[vi] ].v_down.dist;
-				ch = 'v';
 				for (int j = 0; j < v[ path[vi] ].v_down.dist; j++)
 				{
 					//printf("go down (%d, %d)\n", x, y);
@@ -509,7 +507,7 @@ int	main(int argc, char *argv[])
 					y++;
 				}
 				lowest_score += v[ path[vi] ].v_down.dist;
-				ch = '^';
+				//ch = '^';
 			}
 			if (direct == WEST)
 			{
@@ -525,7 +523,7 @@ int	main(int argc, char *argv[])
 					y++;
 				}
 				lowest_score += v[ path[vi] ].v_down.dist;
-				ch = '<';
+				//ch = '<';
 			}
 			if (direct == EAST)
 			{
@@ -541,7 +539,7 @@ int	main(int argc, char *argv[])
 					y++;
 				}
 				lowest_score += v[ path[vi] ].v_down.dist;
-				ch = '>';
+				//ch = '>';
 			}
 			direct = SOUTH;
 		}
@@ -553,7 +551,6 @@ int	main(int argc, char *argv[])
 			if (direct == WEST)
 			{
 				lowest_score += v[ path[vi] ].v_left.dist;
-				ch = '<';
 				for (int j = 0; j < v[ path[vi] ].v_left.dist; j++)
 				{
 					//printf("go left (%d, %d)\n", x, y);
@@ -577,7 +574,7 @@ int	main(int argc, char *argv[])
 					x--;
 				}
 				lowest_score += v[ path[vi] ].v_left.dist;
-				ch = '>';
+				//ch = '>';
 			}
 			if (direct == SOUTH)
 			{
@@ -593,7 +590,7 @@ int	main(int argc, char *argv[])
 					x--;
 				}
 				lowest_score += v[ path[vi] ].v_left.dist;
-				ch = 'v';
+				//ch = 'v';
 			}
 			if (direct == NORTH)
 			{
@@ -609,7 +606,7 @@ int	main(int argc, char *argv[])
 					x--;
 				}
 				lowest_score += v[ path[vi] ].v_left.dist;
-				ch = '^';
+				//ch = '^';
 			}
 			direct = WEST;
 		}
