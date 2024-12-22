@@ -6,7 +6,7 @@
 /*   By: dchernik <dchernik@student.42urduliz.com>  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/18 01:59:14 by dchernik          #+#    #+#             */
-/*   Updated: 2024/12/21 23:09:10 by dchernik         ###   ########.fr       */
+/*   Updated: 2024/12/22 19:41:49 by dchernik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@
 # define MAX_MAP_HEIGHT		256
 # define QUEUE_CAPACITY		4096
 # define VERT_EDGES_NUM		4096
-# define SLEEP_TIME         1
+# define SLEEP_TIME         2
 # define USLEEP_TIME        5*1e5
 # define INF				1e9
 # define NONE				-1
@@ -146,7 +146,10 @@ void	print_map(char (*map)[MAX_MAP_HEIGHT],
 				  int y,
 				  char ch,
 				  t_point *start,
-				  t_point *end);
+				  t_point *end,
+				  t_vertex *v,
+				  int *path,
+				  int way_length);
 
 int		find_tiles(t_tile *t,
 				   char (*map)[MAX_MAP_HEIGHT],
@@ -199,6 +202,7 @@ int	main(int argc, char *argv[])
 	int			way_length;
     t_direction	direct;
 	int			lowest_score;
+	bool		imp_flag;	
 
 	if (argc != 2)
 	{
@@ -327,7 +331,8 @@ int	main(int argc, char *argv[])
 	for (int vi = 0; vi < way_length; vi++)
 	{
 		//printf("current vertex is: %d\n", path[vi]);
-		print_map(map, width, height, x, y, ch, &start, &end);
+		print_map(map, width, height, x, y, ch, &start, &end, v, path, way_length);
+		printf("\nlowest_score: %d\n", lowest_score);
 		sleep(SLEEP_TIME);
 		clear();
 
@@ -343,7 +348,9 @@ int	main(int argc, char *argv[])
 				for (int j = 0; j < v[ path[vi] ].v_up.dist; j++)
 				{
 					//printf("go up (%d, %d)\n", x, y);
-					print_map(map, width, height, x, y, ch, &start, &end);
+					print_map(map, width, height, x, y, ch, &start, &end, v, path, way_length);
+					printf("\nUP!!!\n");
+					printf("\nlowest_score: %d\n", lowest_score);
 					sleep(SLEEP_TIME);
 					clear();
 					y--;
@@ -360,7 +367,8 @@ int	main(int argc, char *argv[])
 				{
 					//printf("go up (%d, %d)\n", x, y);
 					ch = '^';
-					print_map(map, width, height, x, y, ch, &start, &end);
+					print_map(map, width, height, x, y, ch, &start, &end, v, path, way_length);
+					printf("\nlowest_score: %d\n", lowest_score);
 					sleep(SLEEP_TIME);
 					clear();
 					y--;
@@ -378,7 +386,8 @@ int	main(int argc, char *argv[])
 				{
 					//printf("go up (%d, %d)\n", x, y);
 					ch = '^';
-					print_map(map, width, height, x, y, ch, &start, &end);
+					print_map(map, width, height, x, y, ch, &start, &end, v, path, way_length);
+					printf("\nlowest_score: %d\n", lowest_score);
 					sleep(SLEEP_TIME);
 					clear();
 					y--;
@@ -396,7 +405,10 @@ int	main(int argc, char *argv[])
 				{
 					//printf("go up (%d, %d)\n", x, y);
 					ch = '^';
-					print_map(map, width, height, x, y, ch, &start, &end);
+					print_map(map, width, height, x, y, ch, &start, &end, v, path, way_length);
+					printf("\nIMPOSSIBLE!!!\n");
+					imp_flag = true;
+					printf("\nlowest_score: %d\n", lowest_score);
 					sleep(SLEEP_TIME);
 					clear();
 					y--;
@@ -420,7 +432,9 @@ int	main(int argc, char *argv[])
 				for (int j = 0; j < v[ path[vi] ].v_right.dist; j++)
 				{
 					//printf("go right (%d, %d)\n", x, y);
-					print_map(map, width, height, x, y, ch, &start, &end);
+					print_map(map, width, height, x, y, ch, &start, &end, v, path, way_length);
+					printf("\nRIGHT!!!\n");
+					printf("\nlowest_score: %d\n", lowest_score);
 					sleep(SLEEP_TIME);
 					clear();
 					x++;
@@ -434,7 +448,10 @@ int	main(int argc, char *argv[])
 				{
 					//printf("go right (%d, %d)\n", x, y);
 					ch = '>';
-					print_map(map, width, height, x, y, ch, &start, &end);
+					print_map(map, width, height, x, y, ch, &start, &end, v, path, way_length);
+					printf("\nIMPOSSIBLE!!!\n");
+					imp_flag = true;
+					printf("\nlowest_score: %d\n", lowest_score);
 					sleep(SLEEP_TIME);
 					clear();
 					x++;
@@ -450,7 +467,8 @@ int	main(int argc, char *argv[])
 				{
 					//printf("go right (%d, %d)\n", x, y);
 					ch = '>';
-					print_map(map, width, height, x, y, ch, &start, &end);
+					print_map(map, width, height, x, y, ch, &start, &end, v, path, way_length);
+					printf("\nlowest_score: %d\n", lowest_score);
 					sleep(SLEEP_TIME);
 					clear();
 					x++;
@@ -466,7 +484,8 @@ int	main(int argc, char *argv[])
 				{
 					//printf("go right (%d, %d)\n", x, y);
 					ch = '>';
-					print_map(map, width, height, x, y, ch, &start, &end);
+					print_map(map, width, height, x, y, ch, &start, &end, v, path, way_length);
+					printf("\nlowest_score: %d\n", lowest_score);
 					sleep(SLEEP_TIME);
 					clear();
 					x++;
@@ -487,7 +506,9 @@ int	main(int argc, char *argv[])
 				for (int j = 0; j < v[ path[vi] ].v_down.dist; j++)
 				{
 					//printf("go down (%d, %d)\n", x, y);
-					print_map(map, width, height, x, y, ch, &start, &end);
+					print_map(map, width, height, x, y, ch, &start, &end, v, path, way_length);
+					printf("\nDOWN!!!\n");
+					printf("\nlowest_score: %d\n", lowest_score);
 					sleep(SLEEP_TIME);
 					clear();
 					y++;
@@ -501,7 +522,10 @@ int	main(int argc, char *argv[])
 				{
 					//printf("go down (%d, %d)\n", x, y);
 					ch = 'v';
-					print_map(map, width, height, x, y, ch, &start, &end);
+					print_map(map, width, height, x, y, ch, &start, &end, v, path, way_length);
+					printf("\nIMPOSSIBLE!!!\n");
+					imp_flag = true;
+					printf("\nlowest_score: %d\n", lowest_score);
 					sleep(SLEEP_TIME);
 					clear();
 					y++;
@@ -517,7 +541,8 @@ int	main(int argc, char *argv[])
 				{
 					//printf("go down (%d, %d)\n", x, y);
 					ch = 'v';
-					print_map(map, width, height, x, y, ch, &start, &end);
+					print_map(map, width, height, x, y, ch, &start, &end, v, path, way_length);
+					printf("\nlowest_score: %d\n", lowest_score);
 					sleep(SLEEP_TIME);
 					clear();
 					y++;
@@ -533,7 +558,8 @@ int	main(int argc, char *argv[])
 				{
 					//printf("go down (%d, %d)\n", x, y);
 					ch = 'v';
-					print_map(map, width, height, x, y, ch, &start, &end);
+					print_map(map, width, height, x, y, ch, &start, &end, v, path, way_length);
+					printf("\nlowest_score: %d\n", lowest_score);
 					sleep(SLEEP_TIME);
 					clear();
 					y++;
@@ -554,7 +580,9 @@ int	main(int argc, char *argv[])
 				for (int j = 0; j < v[ path[vi] ].v_left.dist; j++)
 				{
 					//printf("go left (%d, %d)\n", x, y);
-					print_map(map, width, height, x, y, ch, &start, &end);
+					print_map(map, width, height, x, y, ch, &start, &end, v, path, way_length);
+					printf("\nUP!!!\n");
+					printf("\nlowest_score: %d\n", lowest_score);
 					sleep(SLEEP_TIME);
 					clear();
 					x--;
@@ -568,7 +596,10 @@ int	main(int argc, char *argv[])
 				{
 					//printf("go left (%d, %d)\n", x, y);
 					ch = '<';
-					print_map(map, width, height, x, y, ch, &start, &end);
+					print_map(map, width, height, x, y, ch, &start, &end, v, path, way_length);
+					printf("\nIMPOSSIBLE!!!\n");
+					imp_flag = true;
+					printf("\nlowest_score: %d\n", lowest_score);
 					sleep(SLEEP_TIME);
 					clear();
 					x--;
@@ -584,7 +615,8 @@ int	main(int argc, char *argv[])
 				{
 					//printf("go left (%d, %d)\n", x, y);
 					ch = '<';
-					print_map(map, width, height, x, y, ch, &start, &end);
+					print_map(map, width, height, x, y, ch, &start, &end, v, path, way_length);
+					printf("\nlowest_score: %d\n", lowest_score);
 					sleep(SLEEP_TIME);
 					clear();
 					x--;
@@ -600,7 +632,8 @@ int	main(int argc, char *argv[])
 				{
 					//printf("go left (%d, %d)\n", x, y);
 					ch = '<';
-					print_map(map, width, height, x, y, ch, &start, &end);
+					print_map(map, width, height, x, y, ch, &start, &end, v, path, way_length);
+					printf("\nlowest_score: %d\n", lowest_score);
 					sleep(SLEEP_TIME);
 					clear();
 					x--;
@@ -612,7 +645,11 @@ int	main(int argc, char *argv[])
 		}
 
 	}
-	//print_map(map, width, height, x, y, ch, &start, &end);
+	//print_map(map, width, height, x, y, ch, &start, &end, path, way_length);
+	if (imp_flag)
+	{
+		printf("imp_flag is set\n");
+	}
 
 	printf("the lowest score is: %d\n", lowest_score);
 
@@ -774,7 +811,10 @@ void	print_map(char (*map)[MAX_MAP_HEIGHT],
 				  int y,
 				  char ch,
 				  t_point *start,
-				  t_point *end)
+				  t_point *end,
+				  t_vertex *v,
+				  int *path,
+				  int way_length)
 {
 	for (int yi = 0; yi < height; yi++)
 	{
@@ -786,7 +826,20 @@ void	print_map(char (*map)[MAX_MAP_HEIGHT],
 			}
 			else
 			{
-				printf("%c", map[yi][xi]);
+				bool flag = false;
+				for (int i = 0; i < way_length; i++)
+				{
+					if (yi == v[ path[i] ].coord.y && xi == v[ path[i] ].coord.x)
+					{
+						flag = true;
+						break;
+					}
+				}
+				if (flag)
+					printf("\033[32m%c\033[37m", map[yi][xi]);
+				else
+					printf("%c", map[yi][xi]);
+
 				/*if (xi != start->x && yi != start->y &&
 					xi != end->x && yi != end->y)
 				{

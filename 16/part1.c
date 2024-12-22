@@ -6,7 +6,7 @@
 /*   By: dchernik <dchernik@student.42urduliz.com>  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/18 01:59:14 by dchernik          #+#    #+#             */
-/*   Updated: 2024/12/21 23:06:44 by dchernik         ###   ########.fr       */
+/*   Updated: 2024/12/22 19:47:37 by dchernik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -277,6 +277,7 @@ int	main(int argc, char *argv[])
 	/* Let's take a walk along
 	 * the shortest route while
 	 * counting the lowest score */
+	bool imp_flag = false;
     direct = EAST;
 	lowest_score = 0;
 	for (int vi = 0; vi < way_length; vi++)
@@ -285,6 +286,10 @@ int	main(int argc, char *argv[])
 		if (v[ path[vi] ].coord.x == v[ path[vi + 1] ].coord.x &&
 			v[ path[vi] ].coord.y > v[ path[vi + 1] ].coord.y)
 		{
+			if (direct == NORTH)
+			{
+				lowest_score += v[ path[vi] ].v_up.dist;
+			}
 			/* If our current direction is east we should
 			 * turn counterclockwise 90 degrees */
 			if (direct == EAST)
@@ -303,6 +308,7 @@ int	main(int argc, char *argv[])
 			 * or counterclockwise 90 degrees twice */
 			if (direct == SOUTH)
 			{
+				imp_flag = true;
 				lowest_score += 2000;
 				lowest_score += v[ path[vi] ].v_up.dist;
 			}
@@ -319,8 +325,13 @@ int	main(int argc, char *argv[])
 		if (v[ path[vi] ].coord.y == v[ path[vi + 1] ].coord.y &&
 			v[ path[vi] ].coord.x < v[ path[vi + 1] ].coord.x)
 		{
+			if (direct == EAST)
+			{
+				lowest_score += v[ path[vi] ].v_right.dist;
+			}
 			if (direct == WEST)
 			{
+				imp_flag = true;
 				lowest_score += 2000;
 				lowest_score += v[ path[vi] ].v_right.dist;
 			}
@@ -341,8 +352,14 @@ int	main(int argc, char *argv[])
 		if (v[ path[vi] ].coord.x == v[ path[vi + 1] ].coord.x &&
 			v[ path[vi] ].coord.y < v[ path[vi + 1] ].coord.y)
 		{
+
+			if (direct == SOUTH)
+			{
+				lowest_score += v[ path[vi] ].v_down.dist;
+			}
 			if (direct == NORTH)
 			{
+				imp_flag = true;
 				lowest_score += 2000;
 				lowest_score += v[ path[vi] ].v_down.dist;
 			}
@@ -363,8 +380,13 @@ int	main(int argc, char *argv[])
 		if (v[ path[vi] ].coord.y == v[ path[vi + 1] ].coord.y &&
 			v[ path[vi] ].coord.x > v[ path[vi + 1] ].coord.x)
 		{
+			if (direct == WEST)
+			{
+				lowest_score += v[ path[vi] ].v_left.dist;
+			}
 			if (direct == EAST)
 			{
+				imp_flag = true;
 				lowest_score += 2000;
 				lowest_score += v[ path[vi] ].v_left.dist;
 			}
@@ -380,6 +402,11 @@ int	main(int argc, char *argv[])
 			}
 			direct = WEST;
 		}
+	}
+
+	if (imp_flag)
+	{
+		printf("imp_flag is set\n");
 	}
 
 	printf("the lowest score is: %d\n", lowest_score);
